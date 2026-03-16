@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guat.mynewsapp.mapper.NewsMapper">
+
+    <!-- 通用结果映射 -->
+    <resultMap id="BaseResultMap" type="com.guat.mynewsapp.entity.News">
+        <id column="id" property="id"/>
+        <result column="title" property="title"/>
+        <result column="content" property="content"/>
+        <result column="category_id" property="categoryID"/>
+        <result column="user_id" property="userID"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <!-- 新增新闻 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO news (title, content, category_id, user_id, create_time)
+        VALUES (#{title}, #{content}, #{categoryID}, #{userID}, NOW())
+    </insert>
+
+    <!-- 修改新闻 /感觉字段有点少-->
+    <update id="update">
+        UPDATE news
+        <set>
+            <if test="title != null">title = #{title},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="categoryID != null">category_id = #{categoryID}</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除新闻 -->
+    <delete id="delete">
+        DELETE FROM news WHERE id = #{id}
+    </delete>
+
+    <!-- 根据ID查询新闻 -->
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM news WHERE id = #{id}
+    </select>
+
+    <!-- 分页查询新闻 -->
+    <select id="selectByPage" resultMap="BaseResultMap">
+        SELECT * FROM news
+        <where>
+            <if test="title != null and title != ''">
+                title LIKE CONCAT('%', #{title}, '%')
+            </if>
+        </where>
+        LIMIT #{start}, #{pageSize}
+    </select>
+
+    <!-- 分页查询总记录数 -->
+    <select id="selectTotal" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM news
+        <where>
+            <if test="title != null and title != ''">
+                title LIKE CONCAT('%', #{title}, '%')
+            </if>
+        </where>
+    </select>
+</mapper>

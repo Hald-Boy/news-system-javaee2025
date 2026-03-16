@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guat.mynewsapp.mapper.NewsImageMapper">
+<!--通用结果映射-->
+    <resultMap id="BaseResultMap" type="com.guat.mynewsapp.entity.NewsImage">
+        <id column="id" property="id"/>
+        <result column="news_id" property="newsId"/>
+        <result column="image_url" property="imageUrl"/>
+        <result column="sort_order" property="sortOrder"/>
+    </resultMap>
+
+    <!-- 批量插入图片 缺少插入创建时间-->
+    <insert id="batchInsert">
+        INSERT INTO news_image (news_id, image_url, sort_order)
+        VALUES
+        <foreach collection="images" item="img" separator=",">
+            (#{img.newsId}, #{img.imageUrl}, #{img.sortOrder})
+        </foreach>
+    </insert>
+
+    <!-- 根据新闻ID查图片 -->
+    <select id="selectByNewsId" resultMap="BaseResultMap">
+        SELECT * FROM news_image WHERE news_id = #{newsId} ORDER BY sort_order ASC
+    </select>
+
+    <!-- 批量删除图片（按ID） -->
+    <delete id="deleteByIds">
+        DELETE FROM news_image WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 按新闻ID删除图片 -->
+    <delete id="deleteByNewsId">
+        DELETE FROM news_image WHERE news_id = #{newsId}
+    </delete>
+</mapper>

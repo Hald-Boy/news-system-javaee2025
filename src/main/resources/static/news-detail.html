@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新闻详情</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="css/common.css">
+    <!-- 新增：引入详情页专属css文件 -->
+    <link rel="stylesheet" href="css/news-detail.css">
+    <!-- 引入Font Awesome图标（和首页/登录页一致） -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<!-- 新增：添加专属class "news-detail-page"，作为样式命名空间 -->
+<div id="app" class="page-container news-detail-page">
+    <header class="page-header">
+        <h1 class="page-title">
+            <i class="fas fa-newspaper page-icon"></i>
+            新闻详情
+        </h1>
+        <div class="header-actions">
+            <el-button type="text" @click="goToIndex" class="nav-btn back-btn">
+                <i class="fas fa-arrow-left btn-icon"></i>返回首页
+            </el-button>
+            <!-- ===== 管理员操作按钮（动态显示） ===== -->
+            <template v-if="userRole === 1">
+                <el-button type="text" @click="editNews" class="nav-btn edit-btn">
+                    <i class="fas fa-pen-to-square btn-icon"></i>编辑新闻
+                </el-button>
+                <el-button type="text" @click="deleteNews" class="nav-btn delete-btn">
+                    <i class="fas fa-trash btn-icon"></i>删除新闻
+                </el-button>
+            </template>
+        </div>
+    </header>
+
+    <div class="content-wrapper">
+        <!-- 加载骨架屏（新增：替换原有加载提示） -->
+        <div v-if="!news" class="skeleton-container">
+            <div class="skeleton-title"></div>
+            <div class="skeleton-meta"></div>
+            <div class="skeleton-image"></div>
+            <div class="skeleton-content" v-for="i in 6" :key="i"></div>
+        </div>
+
+        <div v-else class="news-detail">
+            <h2 class="detail-title" :title="news.title">{{ news.title }}</h2>
+            <div class="detail-meta">
+                <span class="meta-item">
+                    <i class="fas fa-user meta-icon"></i>{{ news.userName || '未知' }}
+                </span>
+                <span class="meta-item">
+                    <i class="fas fa-clock meta-icon"></i>{{ formatDate(news.createTime) }}
+                </span>
+            </div>
+
+            <!-- 显示所有图片（新增：懒加载+画廊布局） -->
+            <div v-if="news.images && news.images.length > 0" class="news-images">
+                <img
+                        v-for="img in news.images"
+                        :key="img.id"
+                        :src="img.imageUrl"
+                        class="detail-image"
+                        alt="新闻图片"
+                        loading="lazy"
+                >
+            </div>
+
+            <div class="detail-content" v-html="news.content">{{ news.content }}</div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+<script>
+    // 登录检查
+    var token = localStorage.getItem('jwt_token');
+    if (!token) {
+        location.href = 'login.html';
+    }
+
+    var userRole = parseInt(localStorage.getItem('user_role') || 0);
+    console.log('【详情页】当前用户角色:', userRole);
+
+    // Axios拦截器
+    axios.interceptors.request.use(function(config) {
+        config.headers['Authorization'] = 'Bearer ' + token;
+        return config;
+    }, function(error) {
+        return Promise.reject(error);
+    });
+
+    // 从URL获取参数
+    function getQueryParam(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+        var r = window.location.search.substr(1).match(reg);
+        return r ? unescape(r[2]) : null;
+    }
+
+    new Vue({
+        el: '#app',
+        data: function() {
+            return {
+                news: null,
+                newsId: getQueryParam('id'),
+                userRole: userRole
+            }
+        },
+        methods: {
+            loadNewsDetail: function() {
+                var self = this;
+
+                if (!self.newsId) {
+                    self.$message.error('无效的新闻ID');
+                    setTimeout(function() {
+                        location.href = 'index.html';
+                    }, 1000);
+                    return;
+                }
+
+                axios.get('/api/' + self.newsId).then(function(response) {
+                    var result = response.data;
+                    if (result.code === 200) {
+                        // 新增：内容渐入动画，延迟赋值触发重绘
+                        setTimeout(() => {
+                            self.news = result.data;
+                        }, 100);
+                    } else {
+                        self.$message.error('加载失败：' + result.msg);
+                        setTimeout(function() {
+                            location.href = 'index.html';
+                        }, 1000);
+                    }
+                }).catch(function(error) {
+                    console.error('【详情页】请求异常:', error);
+                    self.$message.error('请求失败：' + (error.response?.data?.msg || error.message));
+                    setTimeout(function() {
+                        location.href = 'index.html';
+                    }, 1000);
+                });
+            },
+
+            formatDate: function(dateStr) {
+                return dateStr ? dateStr.replace('T', ' ') : '';
+            },
+
+            goToIndex: function() {
+                location.href = 'index.html';
+            },
+
+            editNews: function() {
+                location.href = 'news-manage.html?editId=' + this.newsId;
+            },
+
+            deleteNews: function() {
+                var self = this;
+                this.$confirm('确定删除该新闻吗？', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(function() {
+                    axios.delete('/api/' + self.newsId).then(function(response) {
+                        if (response.data.code === 200) {
+                            self.$message.success('删除成功');
+                            setTimeout(function() {
+                                location.href = 'index.html';
+                            }, 800);
+                        } else {
+                            self.$message.error('删除失败：' + response.data.msg);
+                        }
+                    }).catch(function(error) {
+                        console.error('【详情页】删除异常:', error);
+                        self.$message.error('删除失败：' + (error.response?.data?.msg || error.message));
+                    });
+                }).catch(function() {
+                    // 取消删除
+                });
+            }
+        },
+        mounted: function() {
+            this.loadNewsDetail();
+        }
+    });
+</script>
+</body>
+</html>

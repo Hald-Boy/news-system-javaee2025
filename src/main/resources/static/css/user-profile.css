@@ -1,0 +1,309 @@
+/* css/user-profile.css - 个人中心页专属样式，仅作用于.user-profile-page下的元素 */
+/* 全局变量：和前序页面保持一致，保证品牌统一性 */
+:root {
+    --primary-color: #165DFF;
+    --primary-light: rgba(22, 93, 255, 0.1);
+    --success-color: #67C23A;
+    --danger-color: #F53F3F;
+    --danger-light: rgba(245, 63, 63, 0.1);
+    --text-main: #333333;
+    --text-secondary: #666666;
+    --text-light: #999999;
+    --white: #FFFFFF;
+    --bg-light: #F5F7FA;
+    --border-color: #E5E6EB;
+    --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.12);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 20px;
+    --transition: all 0.3s ease;
+    /* 个人中心专属变量 */
+    --profile-max-width: 600px;
+}
+
+/* 个人中心页容器：重置common.css的page-container，添加滚动背景 */
+.user-profile-page {
+    background-color: var(--bg-light);
+    min-height: 100vh;
+    padding: 0 !important; /* 取消common.css的padding，由内部元素控制 */
+    margin: 0 auto;
+    width: 100%;
+    max-width: 1400px; /* 扩大最大宽度，适配大屏 */
+}
+
+/* ========== 顶部导航栏 ========== */
+/* 固定导航栏，磨砂玻璃效果 */
+.user-profile-page .page-header {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    padding: 15px 20px !important;
+    margin: 0 !important;
+    border-bottom: none !important;
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px); /* 磨砂玻璃效果 */
+    box-shadow: var(--shadow-sm);
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* 页面标题（带图标） */
+.user-profile-page .page-title {
+    color: var(--primary-color);
+    font-size: 22px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+}
+
+.user-profile-page .page-icon {
+    font-size: 24px;
+    color: var(--primary-color);
+}
+
+/* 头部操作按钮容器 */
+.user-profile-page .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* 导航按钮样式 */
+.user-profile-page .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-secondary) !important;
+    font-size: 14px;
+    padding: 6px 12px !important;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+}
+
+.user-profile-page .nav-btn .btn-icon {
+    font-size: 12px;
+}
+
+/* 返回按钮hover样式 */
+.user-profile-page .back-btn:hover {
+    color: var(--primary-color) !important;
+    background-color: var(--primary-light);
+}
+
+/* 用户管理按钮hover样式（管理员专属） */
+.user-profile-page .user-manage-btn:hover {
+    color: var(--primary-color) !important;
+    background-color: var(--primary-light);
+}
+
+/* ========== 内容区域 ========== */
+.user-profile-page .content-wrapper {
+    background: transparent !important; /* 取消common.css的白色背景 */
+    padding: 30px 20px;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    display: flex;
+    justify-content: center; /* 内容居中 */
+}
+
+/* ========== 个人信息卡片样式 ========== */
+.user-profile-page .profile-card {
+    width: 100%;
+    max-width: var(--profile-max-width);
+    border-radius: var(--radius-md) !important;
+    box-shadow: var(--shadow-md) !important;
+    border: none !important;
+    overflow: hidden;
+    animation: fadeIn 0.5s ease both; /* 卡片渐入动画 */
+}
+
+/* 卡片头部样式 */
+.user-profile-page .card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 20px;
+}
+
+.user-profile-page .card-icon {
+    font-size: 20px;
+    color: var(--primary-color);
+}
+
+.user-profile-page .card-title {
+    color: var(--text-main);
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* ========== 个人信息表单样式 ========== */
+.user-profile-page .profile-form {
+    width: 100%;
+}
+
+.user-profile-page .form-item {
+    margin-bottom: 25px !important;
+}
+
+/* 表单输入框通用样式 */
+.user-profile-page .form-input {
+    width: 100%;
+    height: 42px;
+    border-radius: var(--radius-sm) !important;
+    border: 1px solid var(--border-color) !important;
+    transition: var(--transition);
+}
+
+/* 输入框聚焦样式 */
+.user-profile-page .form-input:focus {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 2px var(--primary-light) !important;
+}
+
+/* 禁用输入框样式优化 */
+.user-profile-page .disabled-input {
+    background-color: var(--bg-light) !important;
+    color: var(--text-light) !important;
+    cursor: not-allowed;
+}
+
+/* 表单按钮组样式 */
+.user-profile-page .form-btn-group {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+/* 更新按钮样式 */
+.user-profile-page .update-btn {
+    height: 42px;
+    padding: 0 25px;
+    border-radius: var(--radius-sm) !important;
+    background-color: var(--primary-color) !important;
+    border: none !important;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* 注销按钮样式 */
+.user-profile-page .delete-btn {
+    height: 42px;
+    padding: 0 25px;
+    border-radius: var(--radius-sm) !important;
+    background-color: var(--danger-color) !important;
+    border: none !important;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: var(--transition);
+}
+
+/* 注销按钮hover样式（加深颜色） */
+.user-profile-page .delete-btn:hover {
+    background-color: #E02020 !important;
+}
+
+/* ========== 动画关键帧 ========== */
+/* 卡片渐入动画 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ========== 响应式适配 ========== */
+@media screen and (max-width: 768px) {
+    /* 移动端导航栏优化 */
+    .user-profile-page .page-header {
+        padding: 12px 15px !important;
+    }
+
+    .user-profile-page .page-title {
+        font-size: 18px;
+    }
+
+    .user-profile-page .header-actions {
+        gap: 10px;
+    }
+
+    .user-profile-page .nav-btn {
+        font-size: 12px;
+        padding: 4px 8px !important;
+    }
+
+    /* 移动端内容区域优化 */
+    .user-profile-page .content-wrapper {
+        padding: 20px 15px;
+    }
+
+    /* 移动端卡片优化 */
+    .user-profile-page .profile-card {
+        padding: 15px !important;
+    }
+
+    .user-profile-page .card-title {
+        font-size: 18px;
+    }
+
+    /* 移动端表单按钮组改为纵向排列 */
+    .user-profile-page .form-btn-group {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .user-profile-page .update-btn,
+    .user-profile-page .delete-btn {
+        width: 100%;
+    }
+}
+
+/* 覆盖common.css的冲突样式（仅个人中心页生效） */
+.user-profile-page .page-container {
+    width: 100%;
+}
+
+/* 修复Element UI弹窗样式冲突（注销确认弹窗） */
+.user-profile-page .el-message-box {
+    border-radius: var(--radius-md) !important;
+}
+
+.user-profile-page .el-message-box__header {
+    background-color: var(--bg-light);
+    padding: 15px 20px !important;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.user-profile-page .el-message-box__title {
+    color: var(--danger-color);
+    font-weight: 600;
+}
+
+.user-profile-page .el-message-box__btns {
+    padding: 15px 20px !important;
+}
+
+.user-profile-page .el-message-box__confirm {
+    background-color: var(--danger-color) !important;
+    border: none !important;
+    border-radius: var(--radius-sm) !important;
+}
+
+.user-profile-page .el-message-box__cancel {
+    border-radius: var(--radius-sm) !important;
+}

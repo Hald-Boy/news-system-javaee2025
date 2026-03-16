@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guat.mynewsapp.mapper.UserMapper">
+
+
+    <select id="selectUsers" resultType="com.guat.mynewsapp.entity.User">
+        select
+        id,
+        username,
+        role,
+        create_time
+        from user
+        <where>
+            <if test="username != null and username != ''">username like concat('%',#{username},'%') </if>
+            <if test="role != null">role = #{role} </if>
+            <if test="createTime != null"> create_time BETWEEN #{startTime} AND #{endTime} </if>
+        </where>
+        order by create_time desc limit #{start},#{size}
+    </select>
+
+
+
+
+
+
+
+    <!--    修改自己信息-->
+    <update id="updateUserById" parameterType="com.guat.mynewsapp.entity.User">
+        update user
+        <set>
+            <!-- 只有username不为null时，才更新username -->
+            <if test="username != null">username = #{username},</if>
+            <!-- 只有password不为null时，才更新password -->
+            <if test="password != null">password = #{password},</if>
+            <!-- 只有createtime不为null时，才更新createtime -->
+            <if test="createTime != null">create_time = #{createTime}</if>
+        </set>
+        where id = #{id} <!-- 必须有id，定位要修改的user -->
+    </update>
+
+
+    <!--    管理员修改他人信息-->
+    <update id="updateUser" parameterType="com.guat.mynewsapp.entity.User">
+        update user
+        <set>
+            <!-- 只有username不为null时，才更新username -->
+            <if test="username != null">username = #{username},</if>
+            <!-- 只有password不为null时，才更新password -->
+            <if test="password != null">password = #{password},</if>
+            <!-- role非空判断 -->
+            <if test="role != null">role = #{role},</if>
+            <!-- 只有createtime不为null时，才更新createtime -->
+            <if test="createTime != null">create_time = #{createTime}</if>
+        </set>
+        where id = #{id} <!-- 必须有id，定位要修改的user -->
+    </update>
+
+
+
+</mapper>

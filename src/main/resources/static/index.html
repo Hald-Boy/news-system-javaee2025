@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>首页 - 新闻网</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="css/common.css">
+    <!-- 新增：引入首页专属css文件 -->
+    <link rel="stylesheet" href="css/index.css">
+    <!-- 引入Font Awesome图标（和登录页一致，用于装饰） -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<!-- 新增：添加专属class "index-page"，作为样式命名空间 -->
+<div id="app" class="page-container index-page">
+    <header class="page-header">
+        <h1 class="site-title">
+            <i class="fas fa-newspaper site-icon"></i>
+            所有人的帖子
+        </h1>
+        <div class="user-info">
+            <span class="user-name">当前用户：{{ currentUser || 'Loading...' }}</span>
+            <!-- ===== 管理员菜单（动态显示） ===== -->
+            <template v-if="userRole === 1">
+                <el-button type="text" @click="goToNewsManage" class="nav-btn">新闻管理</el-button>
+                <el-button type="text" @click="goToUserList" class="nav-btn">用户管理</el-button>
+            </template>
+            <el-button type="text" @click="goToProfile" class="nav-btn">个人中心</el-button>
+            <el-button type="text" @click="logout" class="nav-btn logout-btn">退出登录</el-button>
+        </div>
+    </header>
+
+    <div class="content-wrapper">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-list-ul section-icon"></i>
+                新闻列表
+            </h2>
+            <p class="section-desc">共 {{ total }} 条新闻，为你实时更新</p>
+        </div>
+
+        <!-- 加载骨架屏（新增：替换原有空提示，加载时显示） -->
+        <div v-if="newsList.length === 0 && !total" class="skeleton-container">
+            <div class="skeleton-card" v-for="i in 6" :key="i">
+                <div class="skeleton-cover"></div>
+                <div class="skeleton-title"></div>
+                <div class="skeleton-meta"></div>
+            </div>
+        </div>
+
+        <div v-else-if="newsList.length === 0" class="empty-tip">
+            <i class="fas fa-newspaper-empty empty-icon"></i>
+            <p>暂无新闻数据，快去发布第一条新闻吧！</p>
+        </div>
+
+        <div v-else class="news-grid">
+            <div class="news-card" v-for="(news, index) in newsList" :key="news.id" :style="`animation: fadeInUp 0.5s ease ${index * 0.1}s both`">
+                <div class="news-content" @click="goToDetail(news.id)">
+                    <!-- 封面图渲染（新增：懒加载属性+过渡） -->
+                    <img v-if="news.images && news.images.length > 0 && news.images[0].imageUrl"
+                         :src="news.images[0].imageUrl"
+                         class="news-cover"
+                         alt="新闻封面"
+                         loading="lazy">
+                    <div class="news-info">
+                        <h3 class="news-title" :title="news.title">{{ news.title }}</h3>
+                        <div class="news-meta">
+                            <span class="meta-item"><i class="fas fa-clock meta-icon"></i>{{ formatDate(news.createTime) }}</span>
+                            <span class="meta-item"><i class="fas fa-user meta-icon"></i>{{ news.userName || '未知' }}</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- ===== 管理员操作按钮（动态显示） ===== -->
+                <div v-if="userRole === 1" class="admin-actions">
+                    <el-button size="mini" type="primary" @click.stop="editNews(news.id)" class="edit-btn">编辑</el-button>
+                    <el-button size="mini" type="danger" @click.stop="deleteNews(news.id)" class="delete-btn">删除</el-button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 分页 -->
+        <div class="pagination-wrapper" v-if="total > 0">
+            <el-pagination
+                    layout="total, prev, pager, next, jumper"
+                    :page-size="pageSize"
+                    :current-page="pageNum"
+                    :total="total"
+                    @current-change="handlePageChange"
+                    class="news-pagination">
+            </el-pagination>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+<script>
+    var token = localStorage.getItem('jwt_token');
+    if (!token) {
+        location.href = 'login.html';
+    }
+
+    var userRole = parseInt(localStorage.getItem('user_role') || 0);
+    console.log('【首页】当前用户角色:', userRole, '是否为管理员:', userRole === 1);
+
+    axios.interceptors.request.use(function(config) {
+        config.headers['Authorization'] = 'Bearer ' + token;
+        return config;
+    }, function(error) {
+        return Promise.reject(error);
+    });
+
+    new Vue({
+        el: '#app',
+        data: function() {
+            return {
+                newsList: [],
+                total: 0,
+                pageNum: 1,
+                pageSize: 10,
+                currentUser: localStorage.getItem('username') || '',
+                userRole: userRole
+            }
+        },
+        methods: {
+            loadNewsList: function() {
+                var self = this;
+
+                axios.get('/api/page', {
+                    params: {
+                        pageNum: self.pageNum,
+                        pageSize: self.pageSize
+                    }
+                }).then(function(response) {
+                    var result = response.data;
+                    if (result.code === 200) {
+                        self.total = result.data.total || 0;
+                        self.newsList = result.data.rows || [];
+                    } else {
+                        self.$message.error('加载失败：' + result.msg);
+                    }
+                }).catch(function(error) {
+                    console.error('【首页】请求异常:', error);
+                });
+            },
+
+            formatDate: function(dateStr) {
+                return dateStr ? dateStr.replace('T', ' ') : '';
+            },
+
+            handlePageChange: function(page) {
+                this.pageNum = page;
+                this.loadNewsList();
+            },
+
+            goToDetail: function(id) {
+                location.href = 'news-detail.html?id=' + id;
+            },
+
+            logout: function() {
+                localStorage.removeItem('jwt_token');
+                localStorage.removeItem('user_role');
+                localStorage.removeItem('username');
+                location.href = 'login.html';
+            },
+
+            // ===== 管理员功能 =====
+            goToNewsManage: function() {
+                location.href = 'news-manage.html';
+            },
+
+            goToUserList: function() {
+                location.href = 'user-list.html';
+            },
+
+            goToProfile: function() {
+                location.href = 'user-profile.html';
+            },
+
+            editNews: function(id) {
+                location.href = 'news-manage.html?editId=' + id; // 直接跳转到编辑模式
+            },
+
+            deleteNews: function(id) {
+                var self = this;
+                this.$confirm('确定删除该新闻吗？', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(function() {
+                    axios.delete('/api/' + id).then(function(response) {
+                        if (response.data.code === 200) {
+                            self.$message.success('删除成功');
+                            self.loadNewsList();
+                        } else {
+                            self.$message.error('删除失败：' + response.data.msg);
+                        }
+                    }).catch(function(error) {
+                        console.error('【首页】删除异常:', error);
+                    });
+                }).catch(function() {
+                    // 取消删除
+                });
+            }
+        },
+        mounted: function() {
+            this.loadNewsList();
+        }
+    });
+</script>
+</body>
+</html>

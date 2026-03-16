@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户管理</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="css/common.css">
+    <!-- 新增：引入用户管理页专属css文件 -->
+    <link rel="stylesheet" href="css/user-list.css">
+    <!-- 引入Font Awesome图标（和前序页面一致） -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<!-- 新增：添加专属class "user-list-page"，作为样式命名空间 -->
+<div id="app" class="page-container user-list-page">
+    <header class="page-header">
+        <h1 class="page-title">
+            <i class="fas fa-users page-icon"></i>
+            用户管理
+        </h1>
+        <div class="header-actions">
+            <el-button type="text" @click="goToIndex" class="nav-btn back-btn">
+                <i class="fas fa-arrow-left btn-icon"></i>返回首页
+            </el-button>
+            <el-button type="text" @click="goToProfile" class="nav-btn profile-btn">
+                <i class="fas fa-user btn-icon"></i>个人中心
+            </el-button>
+        </div>
+    </header>
+
+    <div class="content-wrapper">
+        <!-- 搜索栏（优化类名和布局） -->
+        <div class="search-bar">
+            <el-input
+                    v-model="searchParams.username"
+                    placeholder="按用户名搜索"
+                    class="search-input username-input"
+                    prefix-icon="fas fa-user"
+            ></el-input>
+            <el-select
+                    v-model="searchParams.role"
+                    placeholder="按角色筛选"
+                    class="search-select role-select"
+                    clearable
+            >
+                <el-option label="全部" value=""></el-option>
+                <el-option label="管理员" value="1"></el-option>
+                <el-option label="普通用户" value="0"></el-option>
+            </el-select>
+            <el-date-picker
+                    v-model="searchParams.createTime"
+                    type="date"
+                    placeholder="创建日期"
+                    class="search-date"
+                    format="yyyy-MM-dd"
+                    value-format="yyyy-MM-dd"
+                    clearable
+            >
+            </el-date-picker>
+            <el-button type="primary" @click="searchUsers" class="search-btn">
+                <i class="fas fa-search btn-icon"></i>搜索
+            </el-button>
+            <el-button @click="resetSearch" class="reset-btn">
+                <i class="fas fa-refresh btn-icon"></i>重置
+            </el-button>
+        </div>
+
+        <!-- 用户列表表格（优化样式类名） -->
+        <el-table
+                :data="userList"
+                border
+                class="user-table"
+                v-loading="loading"
+                loading-text="正在加载用户数据..."
+        >
+            <el-table-column prop="id" label="ID" width="80"></el-table-column>
+            <el-table-column prop="username" label="用户名" show-overflow-tooltip></el-table-column>
+            <el-table-column prop="role" label="角色" width="100">
+                <template slot-scope="scope">
+                    <el-tag :type="scope.row.role === 1 ? 'danger' : 'info'" class="role-tag">
+                        {{ scope.row.role === 1 ? '管理员' : '普通用户' }}
+                    </el-tag>
+                </template>
+            </el-table-column>
+            <el-table-column prop="createTime" label="创建时间" width="160" :formatter="formatDate"></el-table-column>
+            <el-table-column label="操作" width="180" fixed="right">
+                <template slot-scope="scope">
+                    <el-button size="mini" @click="editUser(scope.row)" class="table-edit-btn">编辑</el-button>
+                    <el-button size="mini" type="danger" @click="deleteUser(scope.row.id)" class="table-delete-btn">删除</el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+
+        <!-- 分页（优化类名） -->
+        <div class="pagination-wrapper">
+            <el-pagination
+                    layout="total, prev, pager, next, jumper"
+                    :page-size="pageSize"
+                    :current-page="pageNum"
+                    :total="total"
+                    @current-change="handlePageChange"
+                    class="user-pagination"
+            >
+            </el-pagination>
+        </div>
+
+        <!-- 编辑用户弹窗（优化类名） -->
+        <el-dialog
+                title="编辑用户信息"
+                :visible.sync="dialogVisible"
+                width="50%"
+                class="user-dialog"
+                append-to-body
+        >
+            <el-form
+                    label-width="80px"
+                    class="user-form"
+                    :model="editForm"
+            >
+                <el-form-item label="用户名" required class="form-item">
+                    <el-input
+                            v-model="editForm.username"
+                            placeholder="请输入用户名"
+                            class="form-input"
+                    ></el-input>
+                </el-form-item>
+                <el-form-item label="角色" required class="form-item">
+                    <el-select
+                            v-model="editForm.role"
+                            placeholder="请选择角色"
+                            class="form-select"
+                    >
+                        <el-option label="普通用户" :value="0"></el-option>
+                        <el-option label="管理员" :value="1"></el-option>
+                    </el-select>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="dialogVisible = false" class="dialog-cancel-btn">取消</el-button>
+                <el-button type="primary" @click="saveUser" :loading="saveLoading" class="dialog-save-btn">保存</el-button>
+            </div>
+        </el-dialog>
+    </div>
+</div>
+
+<script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+<script>
+    // 登录检查
+    var token = localStorage.getItem('jwt_token');
+    if (!token) {
+        location.href = 'login.html';
+    }
+
+    // Axios拦截器
+    axios.interceptors.request.use(function(config) {
+        config.headers['Authorization'] = 'Bearer ' + token;
+        return config;
+    }, function(error) {
+        return Promise.reject(error);
+    });
+
+    new Vue({
+        el: '#app',
+        data: function() {
+            return {
+                userList: [],
+                total: 0,
+                pageNum: 1,
+                pageSize: 10,
+                loading: false,
+                searchParams: {
+                    username: '',
+                    role: '',
+                    createTime: ''
+                },
+                dialogVisible: false,
+                saveLoading: false,
+                editForm: {
+                    id: null,
+                    username: '',
+                    role: 0
+                }
+            }
+        },
+        methods: {
+            loadUserList: function() {
+                var self = this;
+                self.loading = true;
+
+                axios.get('/api/users/list', {
+                    params: {
+                        username: self.searchParams.username,
+                        role: self.searchParams.role,
+                        createTime: self.searchParams.createTime,
+                        page: self.pageNum,
+                        pageSize: self.pageSize
+                    }
+                }).then(function(response) {
+                    var result = response.data;
+                    if (result.code === 200) {
+                        // 精确匹配后端返回的rows和total
+                        self.userList = result.data.rows || [];
+                        self.total = result.data.total || 0;
+                    } else {
+                        self.$message.error('加载失败：' + result.msg);
+                    }
+                }).catch(function(error) {
+                    console.error('【用户管理】请求异常:', error);
+                }).finally(function() {
+                    self.loading = false;
+                });
+            },
+
+            searchUsers: function() {
+                this.pageNum = 1;
+                this.loadUserList();
+            },
+
+            resetSearch: function() {
+                this.searchParams = {
+                    username: '',
+                    role: '',
+                    createTime: ''
+                };
+                this.loadUserList();
+            },
+
+            handlePageChange: function(page) {
+                this.pageNum = page;
+                this.loadUserList();
+            },
+
+            // 编辑用户
+            editUser: function(user) {
+                this.editForm = {
+                    id: user.id,
+                    username: user.username,
+                    role: user.role
+                };
+                this.dialogVisible = true;
+            },
+
+            // 保存用户（调用POST /api/user/update）
+            saveUser: function() {
+                var self = this;
+                if (!self.editForm.username) {
+                    self.$message.error('用户名不能为空');
+                    return;
+                }
+
+                self.saveLoading = true;
+
+                // 确保传递完整的User对象（包含id）
+                var updateData = {
+                    id: self.editForm.id,
+                    username: self.editForm.username,
+                    role: self.editForm.role
+                };
+
+                console.log('【用户管理】发送的更新数据:', updateData); // 调试用
+
+                axios.post('/api/user/update', updateData, {
+                    headers: {
+                        'Content-Type': 'application/json;charset=UTF-8'
+                    }
+                }).then(function(response) {
+                    var result = response.data;
+                    if (result.code === 200) {
+                        self.$message.success('修改成功');
+                        self.dialogVisible = false;
+                        self.loadUserList();
+                    } else {
+                        self.$message.error('修改失败：' + result.msg);
+                    }
+                }).catch(function(error) {
+                    console.error('【用户管理】保存异常:', error);
+                    self.$message.error('请求失败：' + (error.response?.data?.msg || error.message));
+                }).finally(function() {
+                    self.saveLoading = false;
+                });
+            },
+
+            // 删除用户（调用GET /api/user/deleteCurrent）
+            deleteUser: function(id) {
+                var self = this;
+                this.$confirm('确定删除该用户吗？', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(function() {
+                    axios.get('/api/user/deleteCurrent', {
+                        params: { id: id }
+                    }).then(function(response) {
+                        var result = response.data;
+                        if (result.code === 200) {
+                            self.$message.success('删除成功');
+                            self.loadUserList();
+                        } else {
+                            self.$message.error('删除失败：' + result.msg);
+                        }
+                    }).catch(function(error) {
+                        console.error('【用户管理】删除异常:', error);
+                    });
+                }).catch(function() {
+                    // 取消删除
+                });
+            },
+
+            formatDate: function(row, column, cellValue) {
+                return cellValue ? cellValue.replace('T', ' ') : '';
+            },
+
+            goToIndex: function() {
+                location.href = 'index.html';
+            },
+
+            goToProfile: function() {
+                location.href = 'user-profile.html';
+            }
+        },
+        mounted: function() {
+            this.loadUserList();
+        }
+    });
+</script>
+</body>
+</html>

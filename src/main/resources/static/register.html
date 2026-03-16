@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="css/common.css">
+    <!-- 新增：引入注册页面专属css文件 -->
+    <link rel="stylesheet" href="css/register.css">
+    <!-- 引入Font Awesome图标（和前序页面一致） -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<!-- 新增：添加专属class "register-page"，作为样式命名空间 -->
+<div id="app" class="page-container register-page">
+    <div class="register-box">
+        <div class="register-header">
+            <i class="fas fa-user-plus header-icon"></i>
+            <h2 class="page-title">用户注册</h2>
+        </div>
+        <el-form @submit.native.prevent label-width="80px" class="register-form" :model="registerForm">
+            <el-form-item label="用户名" class="form-item" required>
+                <el-input
+                        v-model="registerForm.username"
+                        placeholder="请输入用户名"
+                        class="form-input"
+                        prefix-icon="fas fa-user"
+                ></el-input>
+            </el-form-item>
+            <el-form-item label="密码" class="form-item" required>
+                <!-- 新增：密码可见性切换 -->
+                <el-input
+                        v-model="registerForm.password"
+                        type="password"
+                        placeholder="请输入密码"
+                        class="form-input"
+                        prefix-icon="fas fa-lock"
+                        suffix-icon="el-icon-view"
+                        @click.suffix="togglePwdVisible('password')"
+                        :type="pwdVisible.password ? 'text' : 'password'"
+                ></el-input>
+            </el-form-item>
+            <el-form-item label="确认密码" class="form-item" required>
+                <!-- 新增：确认密码可见性切换 -->
+                <el-input
+                        v-model="registerForm.confirmPassword"
+                        type="password"
+                        placeholder="请再次输入密码"
+                        class="form-input"
+                        prefix-icon="fas fa-lock"
+                        suffix-icon="el-icon-view"
+                        @click.suffix="togglePwdVisible('confirmPassword')"
+                        :type="pwdVisible.confirmPassword ? 'text' : 'password'"
+                ></el-input>
+            </el-form-item>
+            <el-form-item class="form-btn-group">
+                <el-button type="primary" @click="handleRegister" :loading="loading" class="register-btn">
+                    <i class="fas fa-paper-plane btn-icon" v-if="!loading"></i>
+                    {{ loading ? '注册中...' : '注册' }}
+                </el-button>
+            </el-form-item>
+            <el-form-item class="login-link-group">
+                <el-button type="text" @click="goToLogin" class="login-link-btn">
+                    <i class="fas fa-sign-in-alt btn-icon"></i>已有账号？立即登录
+                </el-button>
+            </el-form-item>
+        </el-form>
+    </div>
+</div>
+
+<script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: function() {
+            return {
+                registerForm: {
+                    username: '',
+                    password: '',
+                    confirmPassword: ''
+                },
+                loading: false,
+                // 新增：密码可见性切换变量（区分密码和确认密码）
+                pwdVisible: {
+                    password: false,
+                    confirmPassword: false
+                }
+            }
+        },
+        methods: {
+            // 新增：密码可见性切换方法（区分密码和确认密码）
+            togglePwdVisible(type) {
+                this.pwdVisible[type] = !this.pwdVisible[type];
+            },
+
+            handleRegister: function() {
+                var self = this;
+                var username = self.registerForm.username.trim();
+                var password = self.registerForm.password.trim();
+                var confirmPassword = self.registerForm.confirmPassword.trim();
+
+                if (!username || !password) {
+                    this.$message.error('用户名和密码不能为空');
+                    return;
+                }
+                if (password !== confirmPassword) {
+                    this.$message.error('两次输入的密码不一致');
+                    return;
+                }
+
+                self.loading = true;
+
+                // 精确匹配OpenAPI：POST /api/registration，JSON格式
+                axios.post('/api/registration', {
+                    username: username,
+                    password: password
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json;charset=UTF-8'
+                    }
+                }).then(function(response) {
+                    var result = response.data;
+                    if (result.code === 200) {
+                        self.$message.success('注册成功，即将跳转到登录页');
+                        setTimeout(function() {
+                            location.href = 'login.html';
+                        }, 1500);
+                    } else {
+                        self.$message.error('注册失败：' + (result.msg || '未知错误'));
+                    }
+                }).catch(function(error) {
+                    var errorMsg = '注册请求失败：';
+                    if (error.response && error.response.data) {
+                        errorMsg += error.response.data.msg || JSON.stringify(error.response.data);
+                    } else {
+                        errorMsg += error.message;
+                    }
+                    self.$message.error(errorMsg);
+                }).finally(function() {
+                    self.loading = false;
+                    // 重置密码可见性
+                    self.pwdVisible = {
+                        password: false,
+                        confirmPassword: false
+                    };
+                });
+            },
+
+            goToLogin: function() {
+                location.href = 'login.html';
+            }
+        }
+    });
+</script>
+</body>
+</html>

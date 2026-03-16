@@ -1,0 +1,395 @@
+/* css/user-list.css - 用户管理页专属样式，仅作用于.user-list-page下的元素 */
+/* 全局变量：和前序页面保持一致，保证品牌统一性 */
+:root {
+    --primary-color: #165DFF;
+    --primary-light: rgba(22, 93, 255, 0.1);
+    --success-color: #67C23A;
+    --danger-color: #F53F3F;
+    --info-color: #909399;
+    --admin-color: #F53F3F; /* 管理员标签色 */
+    --user-color: #409EFF;   /* 普通用户标签色 */
+    --text-main: #333333;
+    --text-secondary: #666666;
+    --text-light: #999999;
+    --white: #FFFFFF;
+    --bg-light: #F5F7FA;
+    --border-color: #E5E6EB;
+    --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.12);
+    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.15);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 20px;
+    --transition: all 0.3s ease;
+}
+
+/* 用户管理页容器：重置common.css的page-container，添加滚动背景 */
+.user-list-page {
+    background-color: var(--bg-light);
+    min-height: 100vh;
+    padding: 0 !important; /* 取消common.css的padding，由内部元素控制 */
+    margin: 0 auto;
+    width: 100%;
+    max-width: 1400px; /* 扩大最大宽度，适配大屏 */
+}
+
+/* ========== 顶部导航栏 ========== */
+/* 固定导航栏，磨砂玻璃效果 */
+.user-list-page .page-header {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    padding: 15px 20px !important;
+    margin: 0 !important;
+    border-bottom: none !important;
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px); /* 磨砂玻璃效果 */
+    box-shadow: var(--shadow-sm);
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* 页面标题（带图标） */
+.user-list-page .page-title {
+    color: var(--primary-color);
+    font-size: 22px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+}
+
+.user-list-page .page-icon {
+    font-size: 24px;
+    color: var(--admin-color);
+}
+
+/* 头部操作按钮容器 */
+.user-list-page .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* 导航按钮样式 */
+.user-list-page .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-secondary) !important;
+    font-size: 14px;
+    padding: 6px 12px !important;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+}
+
+.user-list-page .nav-btn .btn-icon {
+    font-size: 12px;
+}
+
+/* 返回按钮hover样式 */
+.user-list-page .back-btn:hover {
+    color: var(--primary-color) !important;
+    background-color: var(--primary-light);
+}
+
+/* 个人中心按钮hover样式 */
+.user-list-page .profile-btn:hover {
+    color: var(--primary-color) !important;
+    background-color: var(--primary-light);
+}
+
+/* ========== 内容区域 ========== */
+.user-list-page .content-wrapper {
+    background: transparent !important; /* 取消common.css的白色背景 */
+    padding: 20px;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    margin-top: 10px;
+}
+
+/* ========== 搜索栏样式 ========== */
+.user-list-page .search-bar {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    background: var(--white);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 20px;
+    flex-wrap: wrap; /* 移动端自动换行 */
+}
+
+/* 搜索输入框/选择器/日期选择器通用样式 */
+.user-list-page .search-input,
+.user-list-page .search-select,
+.user-list-page .search-date {
+    height: 40px;
+    border-radius: var(--radius-sm) !important;
+    border: 1px solid var(--border-color) !important;
+    flex: 1;
+    min-width: 140px;
+}
+
+/* 用户名输入框特殊宽度（可选） */
+.user-list-page .username-input {
+    min-width: 200px;
+}
+
+/* 角色选择器特殊宽度（可选） */
+.user-list-page .role-select {
+    min-width: 150px;
+}
+
+/* 日期选择器特殊宽度（可选） */
+.user-list-page .search-date {
+    min-width: 180px;
+}
+
+/* 搜索按钮 */
+.user-list-page .search-btn {
+    height: 40px;
+    padding: 0 20px;
+    border-radius: var(--radius-sm) !important;
+    background-color: var(--primary-color) !important;
+    border: none !important;
+    white-space: nowrap;
+}
+
+/* 重置按钮 */
+.user-list-page .reset-btn {
+    height: 40px;
+    padding: 0 20px;
+    border-radius: var(--radius-sm) !important;
+    border: 1px solid var(--border-color) !important;
+    white-space: nowrap;
+}
+
+/* 按钮图标样式 */
+.user-list-page .btn-icon {
+    margin-right: 4px;
+}
+
+/* ========== 用户表格样式 ========== */
+.user-list-page .user-table {
+    background: var(--white);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+/* 表格头部样式 */
+.user-list-page .el-table__header {
+    background-color: var(--bg-light) !important;
+}
+
+.user-list-page .el-table__header th {
+    color: var(--text-main);
+    font-weight: 500;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+/* 表格行样式 */
+.user-list-page .el-table__row {
+    transition: var(--transition);
+}
+
+.user-list-page .el-table__row:hover {
+    background-color: var(--primary-light) !important;
+}
+
+/* 表格单元格样式 */
+.user-list-page .el-table__cell {
+    padding: 12px 10px;
+    border-bottom: 1px solid #f0f0f0 !important;
+}
+
+/* 角色标签样式优化 */
+.user-list-page .role-tag {
+    border-radius: var(--radius-sm) !important;
+    padding: 4px 8px !important;
+}
+
+/* 覆盖Element UI标签默认颜色，提升辨识度 */
+.user-list-page .el-tag--danger {
+    background-color: var(--admin-color) !important;
+    border-color: var(--admin-color) !important;
+}
+
+.user-list-page .el-tag--info {
+    background-color: var(--user-color) !important;
+    border-color: var(--user-color) !important;
+    color: var(--white) !important;
+}
+
+/* 表格操作按钮 */
+.user-list-page .table-edit-btn {
+    border-radius: var(--radius-sm) !important;
+    background-color: var(--primary-color) !important;
+    border: none !important;
+    margin-right: 5px;
+}
+
+.user-list-page .table-delete-btn {
+    border-radius: var(--radius-sm) !important;
+    background-color: var(--danger-color) !important;
+    border: none !important;
+}
+
+/* 表格加载样式美化 */
+.user-list-page .el-table-loading-text {
+    color: var(--primary-color);
+}
+
+/* ========== 分页组件样式 ========== */
+.user-list-page .pagination-wrapper {
+    margin-top: 20px;
+    text-align: right;
+}
+
+.user-list-page .user-pagination {
+    font-size: 14px;
+}
+
+/* 分页按钮样式 */
+.user-list-page .el-pagination .el-pager li {
+    border-radius: var(--radius-sm);
+    margin: 0 2px;
+}
+
+.user-list-page .el-pagination .el-pager li.active {
+    background-color: var(--primary-color);
+    color: var(--white);
+}
+
+.user-list-page .el-pagination button {
+    border-radius: var(--radius-sm);
+}
+
+/* ========== 编辑用户弹窗样式 ========== */
+.user-list-page .user-dialog {
+    border-radius: var(--radius-md) !important;
+    overflow: hidden;
+}
+
+/* 弹窗标题样式 */
+.user-list-page .el-dialog__header {
+    background-color: var(--bg-light);
+    padding: 15px 20px !important;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.user-list-page .el-dialog__title {
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 18px;
+}
+
+/* 弹窗内容样式 */
+.user-list-page .el-dialog__body {
+    padding: 20px !important;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+/* 表单样式 */
+.user-list-page .user-form {
+    width: 100%;
+}
+
+.user-list-page .form-item {
+    margin-bottom: 20px !important;
+}
+
+/* 表单输入框/选择器样式 */
+.user-list-page .form-input,
+.user-list-page .form-select {
+    width: 100%;
+    border-radius: var(--radius-sm) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+/* 弹窗底部按钮样式 */
+.user-list-page .dialog-footer {
+    text-align: right;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-color);
+}
+
+.user-list-page .dialog-cancel-btn {
+    margin-right: 10px;
+    border-radius: var(--radius-sm) !important;
+}
+
+.user-list-page .dialog-save-btn {
+    border-radius: var(--radius-sm) !important;
+    background-color: var(--primary-color) !important;
+    border: none !important;
+}
+
+/* ========== 响应式适配 ========== */
+@media screen and (max-width: 768px) {
+    /* 移动端导航栏优化 */
+    .user-list-page .page-header {
+        padding: 12px 15px !important;
+    }
+
+    .user-list-page .page-title {
+        font-size: 18px;
+    }
+
+    .user-list-page .header-actions {
+        gap: 10px;
+    }
+
+    .user-list-page .nav-btn {
+        font-size: 12px;
+        padding: 4px 8px !important;
+    }
+
+    /* 移动端内容区域优化 */
+    .user-list-page .content-wrapper {
+        padding: 15px;
+    }
+
+    /* 移动端搜索栏优化 */
+    .user-list-page .search-bar {
+        padding: 15px;
+        gap: 10px;
+    }
+
+    /* 移动端表格优化 */
+    .user-list-page .user-table {
+        font-size: 12px;
+    }
+
+    .user-list-page .el-table__cell {
+        padding: 8px 5px;
+    }
+
+    /* 移动端弹窗优化 */
+    .user-list-page .user-dialog {
+        width: 95% !important;
+    }
+
+    .user-list-page .el-dialog__body {
+        max-height: 60vh;
+    }
+}
+
+/* 覆盖common.css的冲突样式（仅用户管理页生效） */
+.user-list-page .page-container {
+    width: 100%;
+}
+
+/* 修复Element UI弹窗样式冲突 */
+.user-list-page .el-dialog__wrapper {
+    backdrop-filter: blur(5px);
+    background-color: rgba(0, 0, 0, 0.3);
+}

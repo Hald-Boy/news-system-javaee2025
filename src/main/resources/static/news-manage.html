@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新闻管理</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="css/common.css">
+    <!-- 新增：引入管理页专属css文件 -->
+    <link rel="stylesheet" href="css/news-manage.css">
+    <!-- 引入Font Awesome图标（和前序页面一致） -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<!-- 新增：添加专属class "news-manage-page"，作为样式命名空间 -->
+<div id="app" class="page-container news-manage-page">
+    <header class="page-header">
+        <h1 class="page-title">
+            <i class="fas fa-newspaper page-icon"></i>
+            新闻管理
+        </h1>
+        <div class="header-actions">
+            <el-button type="text" @click="goToIndex" class="nav-btn back-btn">
+                <i class="fas fa-arrow-left btn-icon"></i>返回首页
+            </el-button>
+            <el-button type="text" @click="goToProfile" class="nav-btn profile-btn">
+                <i class="fas fa-user btn-icon"></i>个人中心
+            </el-button>
+        </div>
+    </header>
+
+    <div class="content-wrapper">
+        <!-- 搜索栏（优化类名和布局） -->
+        <div class="search-bar">
+            <el-input
+                    v-model="searchParams.title"
+                    placeholder="按标题搜索"
+                    class="search-input"
+                    prefix-icon="fas fa-search"
+            ></el-input>
+            <el-button type="primary" @click="searchNews" class="search-btn">
+                <i class="fas fa-search btn-icon"></i>搜索
+            </el-button>
+            <el-button @click="resetSearch" class="reset-btn">
+                <i class="fas fa-refresh btn-icon"></i>重置
+            </el-button>
+            <el-button type="success" @click="openAddDialog" class="add-btn">
+                <i class="fas fa-plus btn-icon"></i>新增新闻
+            </el-button>
+        </div>
+
+        <!-- 新闻列表表格（优化样式类名） -->
+        <el-table
+                :data="newsList"
+                border
+                class="news-table"
+                v-loading="loading"
+                loading-text="正在加载新闻数据..."
+        >
+            <el-table-column prop="id" label="ID" width="80"></el-table-column>
+            <el-table-column prop="title" label="标题" show-overflow-tooltip></el-table-column>
+            <el-table-column prop="categoryName" label="分类" width="100"></el-table-column>
+            <el-table-column prop="userName" label="作者" width="120"></el-table-column>
+            <el-table-column prop="createTime" label="发布时间" width="160" :formatter="formatDate"></el-table-column>
+            <el-table-column label="操作" width="180" fixed="right">
+                <template slot-scope="scope">
+                    <el-button size="mini" @click="editNews(scope.row.id)" class="table-edit-btn">编辑</el-button>
+                    <el-button size="mini" type="danger" @click="deleteNews(scope.row.id)" class="table-delete-btn">删除</el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+
+        <!-- 分页（优化类名） -->
+        <div class="pagination-wrapper">
+            <el-pagination
+                    layout="total, sizes, prev, pager, next, jumper"
+                    :page-sizes="[5, 10, 20, 50]"
+                    :page-size="pageSize"
+                    :current-page="pageNum"
+                    :total="total"
+                    @current-change="handlePageChange"
+                    @size-change="handleSizeChange"
+                    class="news-pagination"
+            >
+            </el-pagination>
+        </div>
+    </div>
+
+    <!-- 新增/编辑弹窗（优化类名） -->
+    <el-dialog
+            :title="dialogTitle"
+            :visible.sync="dialogVisible"
+            width="70%"
+            class="news-dialog"
+            @close="resetForm"
+            append-to-body
+    >
+        <el-form
+                label-width="80px"
+                class="news-form"
+                :model="newsForm"
+        >
+            <el-form-item label="标题" required class="form-item">
+                <el-input
+                        v-model="newsForm.title"
+                        placeholder="请输入标题"
+                        class="form-input"
+                ></el-input>
+            </el-form-item>
+            <el-form-item label="内容" required class="form-item">
+                <el-input
+                        v-model="newsForm.content"
+                        type="textarea"
+                        :rows="8"
+                        placeholder="请输入内容"
+                        class="form-input"
+                ></el-input>
+            </el-form-item>
+            <el-form-item label="分类" required class="form-item">
+                <el-select
+                        v-model="newsForm.categoryID"
+                        placeholder="请选择新闻分类"
+                        class="form-select"
+                >
+                    <el-option
+                            v-for="category in categoryList"
+                            :key="category.id"
+                            :label="category.name"
+                            :value="category.id"
+                    >
+                    </el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item label="图片" class="form-item">
+                <el-upload
+                        action="#"
+                        list-type="picture-card"
+                        :file-list="fileList"
+                        :on-change="handleImageChange"
+                        :on-remove="handleImageRemove"
+                        :auto-upload="false"
+                        accept="image/*"
+                        class="image-uploader"
+                >
+                    <i class="el-icon-plus"></i>
+                </el-upload>
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="dialogVisible = false" class="dialog-cancel-btn">取消</el-button>
+            <el-button type="primary" @click="saveNews" :loading="saveLoading" class="dialog-save-btn">保存</el-button>
+        </div>
+    </el-dialog>
+</div>
+
+<script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+<script>
+    // 登录检查
+    var token = localStorage.getItem('jwt_token');
+    if (!token) {
+        location.href = 'login.html';
+    }
+
+    // Axios拦截器
+    axios.interceptors.request.use(function(config) {
+        config.headers['Authorization'] = 'Bearer ' + token;
+        return config;
+    }, function(error) {
+        return Promise.reject(error);
+    });
+
+    // ===== 新增：最简的Axios响应拦截器（核心改动，仅几行） =====
+    axios.interceptors.response.use(
+        response => response, // 成功响应直接返回
+        error => {
+            // 只要后端返回401，就清除token并跳登录页
+            if (error.response?.status === 401) {
+                localStorage.removeItem('jwt_token'); // 清除无效token
+                location.href = 'login.html'; // 直接跳转，无多余逻辑
+            }
+            return Promise.reject(error);
+        }
+    );
+
+    new Vue({
+        el: '#app',
+        data: function() {
+            return {
+                newsList: [],
+                total: 0,
+                pageNum: 1,
+                pageSize: 10,
+                loading: false,
+                searchParams: {
+                    title: ''
+                },
+                dialogVisible: false,
+                dialogTitle: '新增新闻',
+                isEdit: false,
+                editId: null,
+                // 新增：分类列表（后续可从接口加载，此处先硬编码测试）
+                categoryList: [
+                    { id: 1, name: '科技' },
+                    { id: 2, name: '生活' },
+                    { id: 3, name: '国际' }
+                ],
+                newsForm: {
+                    title: '',
+                    content: '',
+                    categoryID: null  // 初始值改为null（数字类型），替代原来的空字符串
+                },
+                fileList: [],
+                deleteImageIds: [],
+                saveLoading: false
+            }
+        },
+
+        methods: {
+            loadNewsList: function() {
+                var self = this;
+                self.loading = true;
+
+                axios.get('/api/page', {
+                    params: {
+                        title: self.searchParams.title,
+                        pageNum: self.pageNum,
+                        pageSize: self.pageSize
+                    }
+                }).then(function(response) {
+                    var result = response.data;
+                    if (result.code === 200) {
+                        self.total = result.data.total || 0;
+                        self.newsList = result.data.rows || [];
+                    } else {
+                        self.$message.error('加载失败：' + result.msg);
+                    }
+                }).catch(function(error) {
+                    console.error('【新闻管理】请求异常:', error);
+                }).finally(function() {
+                    self.loading = false;
+                });
+            },
+
+            searchNews: function() {
+                this.pageNum = 1;
+                this.loadNewsList();
+            },
+
+            resetSearch: function() {
+                this.searchParams.title = '';
+                this.pageNum = 1;
+                this.loadNewsList();
+            },
+
+            handlePageChange: function(page) {
+                this.pageNum = page;
+                this.loadNewsList();
+            },
+
+            // 新增方法：处理每页条数选择
+            handleSizeChange: function(size) {
+                this.pageSize = size; // 更新每页条数
+                this.pageNum = 1; // 切换条数后默认回到第1页（用户体验更好）
+                this.loadNewsList(); // 重新加载列表
+            },
+
+            openAddDialog: function() {
+                this.dialogTitle = '新增新闻';
+                this.isEdit = false;
+                this.editId = null;
+                this.resetForm();
+                this.dialogVisible = true;
+            },
+
+            editNews: function(id) {
+                var self = this;
+                self.dialogTitle = '编辑新闻';
+                self.isEdit = true;
+                self.editId = id;
+                self.resetForm();
+
+                axios.get('/api/' + id).then(function(response) {
+                    var result = response.data;
+                    if (result.code === 200) {
+                        var news = result.data;
+                        self.newsForm = {
+                            title: news.title || '',
+                            content: news.content || '',
+                            categoryID: news.categoryID || ''
+                        };
+
+                        // 加载现有图片
+                        if (news.images && news.images.length > 0) {
+                            news.images.forEach(function(img) {
+                                self.fileList.push({
+                                    id: img.id,
+                                    url: img.imageUrl,
+                                    name: '图片_' + img.id
+                                });
+                            });
+                        }
+
+                        self.dialogVisible = true;
+                    } else {
+                        self.$message.error('获取详情失败：' + result.msg);
+                    }
+                }).catch(function(error) {
+                    console.error('【新闻管理】获取详情异常:', error);
+                });
+            },
+
+            deleteNews: function(id) {
+                var self = this;
+                this.$confirm('确定删除该新闻吗？', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(function() {
+                    axios.delete('/api/' + id).then(function(response) {
+                        if (response.data.code === 200) {
+                            self.$message.success('删除成功');
+                            self.loadNewsList();
+                        } else {
+                            self.$message.error('删除失败：' + response.data.msg);
+                        }
+                    }).catch(function(error) {
+                        console.error('【新闻管理】删除异常:', error);
+                    });
+                }).catch(function() {
+                    // 取消删除
+                });
+            },
+
+            handleImageChange: function(file, fileList) {
+                this.fileList = fileList;
+            },
+
+            handleImageRemove: function(file, fileList) {
+                this.fileList = fileList;
+                if (file.id) {
+                    this.deleteImageIds.push(file.id);
+                }
+            },
+
+            // 保存新闻（新增或编辑）
+            /**
+             * 保存新闻（新增或编辑）
+             * 关键修复：使用Blob包装JSON数据，设置正确的Content-Type
+             */
+            saveNews: function() {
+                var self = this;
+                var title = self.newsForm.title.trim();
+                var content = self.newsForm.content.trim();
+
+                // 表单校验
+                if (!title || !content) {
+                    self.$message.error('标题和内容不能为空');
+                    return;
+                }
+
+                self.saveLoading = true;
+
+                // 构建FormData对象
+                var formData = new FormData();
+
+                // 准备news JSON数据
+                var newsData = {
+                    title: title,
+                    content: content,
+                    categoryID: self.newsForm.categoryID ? parseInt(self.newsForm.categoryID) : null
+                };
+
+                // 编辑时需要传入id
+                if (self.isEdit) {
+                    newsData.id = self.editId;
+                }
+
+                // ===== 关键修复：使用Blob包装JSON数据，设置Content-Type为application/json =====
+                var newsBlob = new Blob([JSON.stringify(newsData)], { type: 'application/json' });
+                formData.append('news', newsBlob);
+                console.log('【新闻管理】news JSON Blob已创建:', newsData); // 调试用
+
+                // 添加新增的图片文件（仅含文件，不含已存在的图片）
+                self.fileList.forEach(function(file) {
+                    // 只有新上传的文件（无id）才添加到FormData
+                    if (!file.id && file.raw) {
+                        formData.append('newImages', file.raw);
+                        console.log('【新闻管理】添加图片文件:', file.name);
+                    }
+                });
+
+                // 添加待删除的图片ID（编辑模式）
+                if (self.isEdit && self.deleteImageIds.length > 0) {
+                    // deleteImageIds不需要特殊处理，直接作为字符串
+                    formData.append('deleteImageIds', JSON.stringify(self.deleteImageIds));
+                    console.log('【新闻管理】待删除图片ID:', self.deleteImageIds);
+                }else if(self.isEdit){
+                    formData.append('deleteImageIds','[]');
+                }
+
+                // 确定请求URL和方法
+                var url = self.isEdit ? ('/api/' + self.editId) : '/api';
+                var method = self.isEdit ? 'put' : 'post';
+
+                console.log('【新闻管理】即将发送请求:', method, url);
+                console.log('【新闻管理】FormData内容:');
+                for (var pair of formData.entries()) {
+                    console.log('  ', pair[0] + ':', pair[1]);
+                }
+
+                // 发送请求（浏览器自动设置Content-Type为multipart/form-data）
+                axios({
+                    method: method,
+                    url: url,
+                    data: formData,
+                    // 不要手动设置Content-Type，让浏览器自动生成带boundary的Header
+                }).then(function(response) {
+                    console.log('【新闻管理】保存响应:', response);
+
+                    var result = response.data;
+                    if (result.code === 200) {
+                        self.$message.success('保存成功');
+                        self.dialogVisible = false;
+                        self.resetForm();
+                        self.loadNewsList();
+                    } else {
+                        self.$message.error('保存失败：' + result.msg);
+                    }
+                }).catch(function(error) {
+                    console.error('【新闻管理】保存异常:', error);
+                    console.error('【新闻管理】错误详情:', error.response);
+                    self.$message.error('请求失败：' + (error.response?.data?.msg || error.message));
+                }).finally(function() {
+                    self.saveLoading = false;
+                });
+            },
+
+            resetForm: function() {
+                this.newsForm = {
+                    title: '',
+                    content: '',
+                    categoryID: ''
+                };
+                this.fileList = [];
+                this.deleteImageIds = [];
+            },
+
+            goToIndex: function() {
+                location.href = 'index.html';
+            },
+
+            goToProfile: function() {
+                location.href = 'user-profile.html';
+            },
+
+            formatDate: function(row, column, cellValue) {
+                return cellValue ? cellValue.replace('T', ' ') : '';
+            }
+        },
+        mounted: function() {
+            this.loadNewsList();
+        }
+    });
+</script>
+</body>
+</html>

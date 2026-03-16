@@ -1,0 +1,190 @@
+/* css/register.css - 注册页面专属样式，仅作用于.register-page下的元素 */
+/* 全局变量：和前序页面保持一致，保证品牌统一性 */
+:root {
+    --primary-color: #165DFF;
+    --primary-light: rgba(22, 93, 255, 0.1);
+    --success-color: #67C23A;
+    --danger-color: #F53F3F;
+    --text-main: #333333;
+    --text-secondary: #666666;
+    --text-light: #999999;
+    --white: #FFFFFF;
+    --bg-light: #F5F7FA;
+    --bg-gradient: linear-gradient(135deg, #e8f4f8 0%, #f0f8fb 100%);
+    --border-color: #E5E6EB;
+    --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.12);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 20px;
+    --transition: all 0.3s ease;
+    /* 注册页面专属变量 */
+    --register-box-width: 400px;
+}
+
+/* 注册页面容器：重置common.css的page-container，添加渐变背景 */
+.register-page {
+    background: var(--bg-gradient);
+    min-height: 100vh;
+    padding: 0 !important; /* 取消common.css的padding */
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center; /* 垂直居中 */
+}
+
+/* ========== 注册卡片样式 ========== */
+.register-page .register-box {
+    width: 100%;
+    max-width: var(--register-box-width);
+    padding: 30px;
+    background: var(--white);
+    border-radius: var(--radius-lg) !important;
+    box-shadow: var(--shadow-md) !important;
+    border: none !important;
+    animation: fadeIn 0.5s ease both; /* 卡片渐入动画 */
+}
+
+/* 注册头部样式 */
+.register-page .register-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.register-page .header-icon {
+    font-size: 32px;
+    color: var(--primary-color);
+    margin-bottom: 5px;
+}
+
+.register-page .page-title {
+    color: var(--text-main);
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+    text-align: center;
+}
+
+/* ========== 注册表单样式 ========== */
+.register-page .register-form {
+    width: 100%;
+}
+
+.register-page .form-item {
+    margin-bottom: 20px !important;
+}
+
+/* 表单输入框通用样式 */
+.register-page .form-input {
+    width: 100%;
+    height: 45px;
+    border-radius: var(--radius-sm) !important;
+    border: 1px solid var(--border-color) !important;
+    transition: var(--transition);
+    padding: 0 15px;
+}
+
+/* 输入框前缀图标样式 */
+.register-page .el-input__prefix {
+    color: var(--text-light);
+    margin-right: 5px;
+}
+
+/* 输入框聚焦样式 */
+.register-page .form-input:focus {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 2px var(--primary-light) !important;
+}
+
+/* ========== 表单按钮组样式 ========== */
+.register-page .form-btn-group {
+    margin-bottom: 15px !important;
+}
+
+/* 注册按钮样式 */
+.register-page .register-btn {
+    width: 100%;
+    height: 45px;
+    border-radius: var(--radius-sm) !important;
+    background-color: var(--primary-color) !important;
+    border: none !important;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* 登录链接组样式 */
+.register-page .login-link-group {
+    text-align: center;
+    margin-bottom: 0 !important;
+}
+
+/* 登录跳转按钮样式 */
+.register-page .login-link-btn {
+    color: var(--primary-color) !important;
+    font-size: 14px;
+    transition: var(--transition);
+    padding: 0 !important;
+}
+
+.register-page .login-link-btn:hover {
+    color: #0E48D9 !important;
+    text-decoration: underline;
+}
+
+/* 按钮图标样式 */
+.register-page .btn-icon {
+    font-size: 14px;
+}
+
+/* ========== 动画关键帧 ========== */
+/* 卡片渐入动画 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ========== 响应式适配 ========== */
+@media screen and (max-width: 768px) {
+    /* 移动端注册卡片优化 */
+    .register-page .register-box {
+        max-width: 90%;
+        padding: 20px 15px;
+    }
+
+    .register-page .page-title {
+        font-size: 20px;
+    }
+
+    .register-page .header-icon {
+        font-size: 28px;
+    }
+
+    /* 移动端输入框和按钮高度调整 */
+    .register-page .form-input,
+    .register-page .register-btn {
+        height: 42px;
+    }
+}
+
+/* 覆盖common.css的冲突样式（仅注册页面生效） */
+.register-page .page-container {
+    width: 100%;
+}
+
+/* 修复Element UI消息提示样式 */
+.register-page .el-message {
+    border-radius: var(--radius-sm) !important;
+}

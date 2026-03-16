@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 新闻网管理系统</title>
+    <!-- 引入Element UI -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- 引入Font Awesome图标（用于装饰和功能图标） -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 公共样式（保留，仅用基础重置） -->
+    <link rel="stylesheet" href="css/common.css">
+    <!-- 登录页专属样式（全量重写） -->
+    <link rel="stylesheet" href="css/login.css">
+</head>
+<body>
+<div id="app" class="login-container">
+    <!-- 左侧品牌视觉区 -->
+    <div class="brand-section">
+        <div class="brand-content">
+            <h1 class="brand-title">
+                <span class="text-gradient">青橙</span>新闻
+            </h1>
+            <p class="brand-desc">聚焦热点——看尽天下事</p>
+            <!-- 动态插画（使用picsum的新闻相关插画，可替换为本地图） -->
+            <div class="brand-illustration">
+                <img src="https://img95.699pic.com/desgin_photo/40177/3201_list.jpg" alt="新闻插画" class="illustration-img">
+            </div>
+            <div class="brand-footer">
+                <p>© 2025 青藤之恋 All Rights Reserved</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 右侧登录功能区 -->
+    <div class="login-section">
+        <div class="login-card">
+            <!-- 登录标题 + 图标 -->
+            <div class="login-header">
+                <i class="fas fa-newspaper login-icon"></i>
+                <h2 class="login-title">账号登录</h2>
+            </div>
+
+            <!-- 登录表单（保留原有逻辑，新增记住密码、忘记密码） -->
+            <el-form :model="loginForm" :rules="loginRules" ref="loginForm" @submit.native.prevent label-width="0px" class="login-form">
+                <el-form-item prop="username">
+                    <div class="input-wrapper">
+                        <i class="fas fa-user input-icon"></i>
+                        <el-input
+                                v-model="loginForm.username"
+                                placeholder="请输入用户名"
+                                ref="usernameInput"
+                                class="login-input"
+                        ></el-input>
+                    </div>
+                </el-form-item>
+
+                <el-form-item prop="password">
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock input-icon"></i>
+                        <el-input
+                                v-model="loginForm.password"
+                                type="password"
+                                placeholder="请输入密码"
+                                @keyup.enter.native="handleLogin"
+                                class="login-input"
+                        ></el-input>
+                    </div>
+                </el-form-item>
+
+                <!-- 记住密码 + 忘记密码 -->
+                <div class="login-options">
+                    <el-checkbox v-model="loginForm.remember" class="remember-checkbox">记住密码</el-checkbox>
+                    <a href="javascript:;" class="forgot-password" @click="forgotPassword">忘记密码？</a>
+                </div>
+
+                <el-form-item>
+                    <el-button
+                            type="primary"
+                            @click="handleLogin"
+                            :loading="loading"
+                            class="login-btn"
+                    >
+                        {{ loading ? '登录中...' : '立即登录' }}
+                    </el-button>
+                </el-form-item>
+
+                <!-- 注册链接 -->
+                <el-form-item class="register-item">
+                    <span>还没有账号？</span>
+                    <a href="javascript:;" class="register-link" @click="goToRegister">立即注册</a>
+                </el-form-item>
+            </el-form>
+        </div>
+    </div>
+</div>
+
+<!-- 原有脚本（保留逻辑，新增表单验证、忘记密码方法） -->
+<script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: function() {
+            return {
+                loginForm: {
+                    username: '',
+                    password: '',
+                    remember: false // 新增：记住密码
+                },
+                loading: false,
+                // 新增：表单验证规则
+                loginRules: {
+                    username: [
+                        { required: true, message: '请输入用户名', trigger: 'blur' }
+                    ],
+                    password: [
+                        { required: true, message: '请输入密码', trigger: 'blur' }
+                    ]
+                }
+            }
+        },
+        methods: {
+            handleLogin: function() {
+                // 新增：表单验证
+                this.$refs.loginForm.validate((valid) => {
+                    if (!valid) {
+                        return;
+                    }
+
+                    var self = this;
+                    var username = self.loginForm.username.trim();
+                    var password = self.loginForm.password.trim();
+
+                    self.loading = true;
+
+                    axios.post('/login', {
+                        username: username,
+                        password: password
+                    }, {
+                        headers: {
+                            'Content-Type': 'application/json;charset=UTF-8'
+                        }
+                    }).then(function(response) {
+                        var result = response.data;
+                        if (result.code === 200) {
+                            var token = result.data;
+                            if (!token) {
+                                self.$message.error('登录失败：服务器未返回Token');
+                                return;
+                            }
+
+                            // 存储Token
+                            localStorage.setItem('jwt_token', token);
+
+                            // 获取用户信息（含角色）
+                            axios.get('/api/user/current', {
+                                headers: {
+                                    'Authorization': 'Bearer ' + token
+                                }
+                            }).then(function(userResponse) {
+                                var userResult = userResponse.data;
+                                if (userResult.code === 200 && userResult.data) {
+                                    localStorage.setItem('user_role', userResult.data.role);
+                                    localStorage.setItem('username', userResult.data.username);
+                                }
+
+                                self.$message.success('登录成功，正在跳转...');
+                                setTimeout(function() {
+                                    window.location.href = 'index.html';
+                                }, 800);
+                            }).catch(function() {
+                                self.$message.success('登录成功，正在跳转...');
+                                setTimeout(function() {
+                                    window.location.href = 'index.html';
+                                }, 800);
+                            });
+                        } else {
+                            self.$message.error('登录失败：' + (result.msg || '未知错误'));
+                        }
+                    }).catch(function(error) {
+                        var errorMsg = '登录请求失败：';
+                        if (error.response && error.response.data) {
+                            errorMsg += error.response.data.msg || JSON.stringify(error.response.data);
+                        } else {
+                            errorMsg += error.message;
+                        }
+                        self.$message.error(errorMsg);
+                    }).finally(function() {
+                        self.loading = false;
+                    });
+                });
+            },
+            goToRegister: function() {
+                location.href = 'register.html';
+            },
+            // 新增：忘记密码（可扩展弹窗逻辑）
+            forgotPassword: function() {
+                this.$message.info('忘记密码功能暂未开放，可联系管理员重置');
+            }
+        },
+        mounted: function() {
+            this.$refs.usernameInput.focus();
+            // 新增：如果本地有记住的用户名，自动填充（简单实现）
+            const savedUsername = localStorage.getItem('saved_username');
+            if (savedUsername) {
+                this.loginForm.username = savedUsername;
+                this.loginForm.remember = true;
+            }
+        },
+        watch: {
+            // 新增：记住密码时存储用户名
+            'loginForm.remember': function(val) {
+                if (val && this.loginForm.username) {
+                    localStorage.setItem('saved_username', this.loginForm.username);
+                } else {
+                    localStorage.removeItem('saved_username');
+                }
+            }
+        }
+    });
+</script>
+</body>
+</html>

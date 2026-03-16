@@ -1,0 +1,407 @@
+/* css/news-manage.css - 新闻管理页专属样式，仅作用于.news-manage-page下的元素 */
+/* 全局变量：和前序页面保持一致，保证品牌统一性 */
+:root {
+    --primary-color: #165DFF;
+    --primary-light: rgba(22, 93, 255, 0.1);
+    --success-color: #67C23A;
+    --success-light: rgba(103, 194, 58, 0.1);
+    --danger-color: #F53F3F;
+    --danger-light: rgba(245, 63, 63, 0.1);
+    --warning-color: #E6A23C;
+    --text-main: #333333;
+    --text-secondary: #666666;
+    --text-light: #999999;
+    --white: #FFFFFF;
+    --bg-light: #F5F7FA;
+    --border-color: #E5E6EB;
+    --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.12);
+    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.15);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 20px;
+    --transition: all 0.3s ease;
+}
+
+/* 管理页容器：重置common.css的page-container，添加滚动背景 */
+.news-manage-page {
+    background-color: var(--bg-light);
+    min-height: 100vh;
+    padding: 0 !important; /* 取消common.css的padding，由内部元素控制 */
+    margin: 0 auto;
+    width: 100%;
+    max-width: 1400px; /* 扩大最大宽度，适配大屏 */
+}
+
+/* ========== 顶部导航栏 ========== */
+/* 固定导航栏，磨砂玻璃效果 */
+.news-manage-page .page-header {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    padding: 15px 20px !important;
+    margin: 0 !important;
+    border-bottom: none !important;
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px); /* 磨砂玻璃效果 */
+    box-shadow: var(--shadow-sm);
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* 页面标题（带图标） */
+.news-manage-page .page-title {
+    color: var(--primary-color);
+    font-size: 22px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+}
+
+.news-manage-page .page-icon {
+    font-size: 24px;
+    color: var(--success-color);
+}
+
+/* 头部操作按钮容器 */
+.news-manage-page .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* 导航按钮样式 */
+.news-manage-page .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-secondary) !important;
+    font-size: 14px;
+    padding: 6px 12px !important;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+}
+
+.news-manage-page .nav-btn .btn-icon {
+    font-size: 12px;
+}
+
+/* 返回按钮hover样式 */
+.news-manage-page .back-btn:hover {
+    color: var(--primary-color) !important;
+    background-color: var(--primary-light);
+}
+
+/* 个人中心按钮hover样式 */
+.news-manage-page .profile-btn:hover {
+    color: var(--primary-color) !important;
+    background-color: var(--primary-light);
+}
+
+/* ========== 内容区域 ========== */
+.news-manage-page .content-wrapper {
+    background: transparent !important; /* 取消common.css的白色背景 */
+    padding: 20px;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    margin-top: 10px;
+}
+
+/* ========== 搜索栏样式 ========== */
+.news-manage-page .search-bar {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    background: var(--white);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 20px;
+    flex-wrap: wrap; /* 移动端自动换行 */
+}
+
+/* 搜索输入框 */
+.news-manage-page .search-input {
+    flex: 1;
+    min-width: 200px;
+    height: 40px;
+    border-radius: var(--radius-sm) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+/* 搜索按钮 */
+.news-manage-page .search-btn {
+    height: 40px;
+    padding: 0 20px;
+    border-radius: var(--radius-sm) !important;
+    background-color: var(--primary-color) !important;
+    border: none !important;
+}
+
+/* 重置按钮 */
+.news-manage-page .reset-btn {
+    height: 40px;
+    padding: 0 20px;
+    border-radius: var(--radius-sm) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+/* 新增按钮 */
+.news-manage-page .add-btn {
+    height: 40px;
+    padding: 0 20px;
+    border-radius: var(--radius-sm) !important;
+    background-color: var(--success-color) !important;
+    border: none !important;
+}
+
+/* 按钮图标样式 */
+.news-manage-page .btn-icon {
+    margin-right: 4px;
+}
+
+/* ========== 新闻表格样式 ========== */
+.news-manage-page .news-table {
+    background: var(--white);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+/* 表格头部样式 */
+.news-manage-page .el-table__header {
+    background-color: var(--bg-light) !important;
+}
+
+.news-manage-page .el-table__header th {
+    color: var(--text-main);
+    font-weight: 500;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+/* 表格行样式 */
+.news-manage-page .el-table__row {
+    transition: var(--transition);
+}
+
+.news-manage-page .el-table__row:hover {
+    background-color: var(--primary-light) !important;
+}
+
+/* 表格单元格样式 */
+.news-manage-page .el-table__cell {
+    padding: 12px 10px;
+    border-bottom: 1px solid #f0f0f0 !important;
+}
+
+/* 表格操作按钮 */
+.news-manage-page .table-edit-btn {
+    border-radius: var(--radius-sm) !important;
+    background-color: var(--primary-color) !important;
+    border: none !important;
+    margin-right: 5px;
+}
+
+.news-manage-page .table-delete-btn {
+    border-radius: var(--radius-sm) !important;
+    background-color: var(--danger-color) !important;
+    border: none !important;
+}
+
+/* 表格加载样式美化 */
+.news-manage-page .el-table-loading-text {
+    color: var(--primary-color);
+}
+
+/* ========== 分页组件样式 ========== */
+.news-manage-page .pagination-wrapper {
+    margin-top: 20px;
+    text-align: right;
+}
+
+.news-manage-page .news-pagination {
+    font-size: 14px;
+}
+
+/* 分页按钮样式 */
+.news-manage-page .el-pagination .el-pager li {
+    border-radius: var(--radius-sm);
+    margin: 0 2px;
+}
+
+.news-manage-page .el-pagination .el-pager li.active {
+    background-color: var(--primary-color);
+    color: var(--white);
+}
+
+.news-manage-page .el-pagination button {
+    border-radius: var(--radius-sm);
+}
+
+/* ========== 新增/编辑弹窗样式 ========== */
+.news-manage-page .news-dialog {
+    border-radius: var(--radius-md) !important;
+    overflow: hidden;
+}
+
+/* 弹窗标题样式 */
+.news-manage-page .el-dialog__header {
+    background-color: var(--bg-light);
+    padding: 15px 20px !important;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.news-manage-page .el-dialog__title {
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 18px;
+}
+
+/* 弹窗内容样式 */
+.news-manage-page .el-dialog__body {
+    padding: 20px !important;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+/* 表单样式 */
+.news-manage-page .news-form {
+    width: 100%;
+}
+
+.news-manage-page .form-item {
+    margin-bottom: 20px !important;
+}
+
+/* 表单输入框/选择器样式 */
+.news-manage-page .form-input,
+.news-manage-page .form-select {
+    width: 100%;
+    border-radius: var(--radius-sm) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+/* 图片上传组件样式 */
+.news-manage-page .image-uploader {
+    width: 100%;
+}
+
+/* 上传图片卡片样式 */
+.news-manage-page .el-upload--picture-card {
+    width: 100px !important;
+    height: 100px !important;
+    border-radius: var(--radius-sm) !important;
+    border: 1px dashed var(--border-color) !important;
+    transition: var(--transition);
+}
+
+.news-manage-page .el-upload--picture-card:hover {
+    border-color: var(--primary-color) !important;
+    background-color: var(--primary-light) !important;
+}
+
+/* 已上传图片样式 */
+.news-manage-page .el-upload-list--picture-card .el-upload-list__item {
+    width: 100px !important;
+    height: 100px !important;
+    border-radius: var(--radius-sm) !important;
+}
+
+/* 弹窗底部按钮样式 */
+.news-manage-page .dialog-footer {
+    text-align: right;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-color);
+}
+
+.news-manage-page .dialog-cancel-btn {
+    margin-right: 10px;
+    border-radius: var(--radius-sm) !important;
+}
+
+.news-manage-page .dialog-save-btn {
+    border-radius: var(--radius-sm) !important;
+    background-color: var(--primary-color) !important;
+    border: none !important;
+}
+
+/* ========== 响应式适配 ========== */
+@media screen and (max-width: 768px) {
+    /* 移动端导航栏优化 */
+    .news-manage-page .page-header {
+        padding: 12px 15px !important;
+    }
+
+    .news-manage-page .page-title {
+        font-size: 18px;
+    }
+
+    .news-manage-page .header-actions {
+        gap: 10px;
+    }
+
+    .news-manage-page .nav-btn {
+        font-size: 12px;
+        padding: 4px 8px !important;
+    }
+
+    /* 移动端内容区域优化 */
+    .news-manage-page .content-wrapper {
+        padding: 15px;
+    }
+
+    /* 移动端搜索栏优化 */
+    .news-manage-page .search-bar {
+        padding: 15px;
+        gap: 10px;
+    }
+
+    .news-manage-page .search-btn,
+    .news-manage-page .reset-btn,
+    .news-manage-page .add-btn {
+        flex: 1;
+        min-width: 80px;
+    }
+
+    /* 移动端表格优化 */
+    .news-manage-page .news-table {
+        font-size: 12px;
+    }
+
+    .news-manage-page .el-table__cell {
+        padding: 8px 5px;
+    }
+
+    /* 移动端弹窗优化 */
+    .news-manage-page .news-dialog {
+        width: 95% !important;
+    }
+
+    .news-manage-page .el-dialog__body {
+        max-height: 60vh;
+    }
+
+    /* 移动端上传图片卡片缩小 */
+    .news-manage-page .el-upload--picture-card,
+    .news-manage-page .el-upload-list--picture-card .el-upload-list__item {
+        width: 80px !important;
+        height: 80px !important;
+    }
+}
+
+/* 覆盖common.css的冲突样式（仅管理页生效） */
+.news-manage-page .page-container {
+    width: 100%;
+}
+
+/* 修复Element UI弹窗样式冲突 */
+.news-manage-page .el-dialog__wrapper {
+    backdrop-filter: blur(5px);
+    background-color: rgba(0, 0, 0, 0.3);
+}

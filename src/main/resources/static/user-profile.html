@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人中心</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="css/common.css">
+    <!-- 新增：引入个人中心专属css文件 -->
+    <link rel="stylesheet" href="css/user-profile.css">
+    <!-- 引入Font Awesome图标（和前序页面一致） -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<!-- 新增：添加专属class "user-profile-page"，作为样式命名空间 -->
+<div id="app" class="page-container user-profile-page">
+    <header class="page-header">
+        <h1 class="page-title">
+            <i class="fas fa-user-circle page-icon"></i>
+            个人中心
+        </h1>
+        <div class="header-actions">
+            <el-button type="text" @click="goToIndex" class="nav-btn back-btn">
+                <i class="fas fa-arrow-left btn-icon"></i>返回首页
+            </el-button>
+            <el-button type="text" @click="goToUserList" v-if="userRole === 1" class="nav-btn user-manage-btn">
+                <i class="fas fa-users btn-icon"></i>用户管理
+            </el-button>
+        </div>
+    </header>
+
+    <div class="content-wrapper">
+        <!-- 个人信息卡片（优化类名） -->
+        <el-card class="profile-card">
+            <div class="card-header">
+                <i class="fas fa-id-card card-icon"></i>
+                <h3 class="card-title">个人信息</h3>
+            </div>
+            <el-form label-width="100px" class="profile-form" :model="userInfo">
+                <el-form-item label="用户ID" class="form-item">
+                    <el-input v-model="userInfo.id" disabled class="form-input disabled-input"></el-input>
+                </el-form-item>
+                <el-form-item label="用户名" class="form-item" required>
+                    <el-input v-model="userInfo.username" placeholder="请输入用户名" class="form-input"></el-input>
+                </el-form-item>
+                <el-form-item label="新密码" class="form-item">
+                    <!-- 新增：密码可见性切换 -->
+                    <el-input
+                            v-model="userForm.password"
+                            type="password"
+                            placeholder="不修改请留空"
+                            class="form-input"
+                            suffix-icon="el-icon-view"
+                            @click.suffix="togglePasswordVisible"
+                            :type="passwordVisible ? 'text' : 'password'"
+                    ></el-input>
+                </el-form-item>
+                <el-form-item label="创建时间" class="form-item">
+                    <el-input v-model="userInfo.createTime" disabled class="form-input disabled-input"></el-input>
+                </el-form-item>
+                <el-form-item class="form-btn-group">
+                    <el-button type="primary" @click="updateUser" :loading="loading" class="update-btn">
+                        <i class="fas fa-save btn-icon"></i>更新信息
+                    </el-button>
+                    <el-button type="danger" @click="deleteCurrentUser" class="delete-btn">
+                        <i class="fas fa-user-slash btn-icon"></i>注销账号
+                    </el-button>
+                </el-form-item>
+            </el-form>
+        </el-card>
+    </div>
+</div>
+
+<script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+<script>
+    // 登录检查
+    var token = localStorage.getItem('jwt_token');
+    if (!token) {
+        location.href = 'login.html';
+    }
+
+    var userRole = parseInt(localStorage.getItem('user_role') || 0);
+
+    // Axios拦截器
+    axios.interceptors.request.use(function(config) {
+        config.headers['Authorization'] = 'Bearer ' + token;
+        return config;
+    }, function(error) {
+        return Promise.reject(error);
+    });
+
+    new Vue({
+        el: '#app',
+        data: function() {
+            return {
+                userInfo: {
+                    id: '',
+                    username: '',
+                    createTime: ''
+                },
+                userForm: {
+                    password: ''
+                },
+                loading: false,
+                userRole: userRole,
+                // 新增：密码可见性切换变量
+                passwordVisible: false
+            }
+        },
+        methods: {
+            // 新增：密码可见性切换方法
+            togglePasswordVisible() {
+                this.passwordVisible = !this.passwordVisible;
+            },
+
+            // 加载当前用户信息
+            loadCurrentUser: function() {
+                var self = this;
+                axios.get('/api/user/current').then(function(response) {
+                    var result = response.data;
+                    if (result.code === 200) {
+                        self.userInfo = {
+                            id: result.data.id || '',
+                            username: result.data.username || '',
+                            createTime: result.data.createTime ? result.data.createTime.replace('T', ' ') : ''
+                        };
+                    } else {
+                        self.$message.error('获取用户信息失败：' + result.msg);
+                    }
+                }).catch(function(error) {
+                    console.error('【个人中心】获取用户信息异常:', error);
+                    self.$message.error('请求失败：' + (error.response?.data?.msg || error.message));
+                });
+            },
+
+            // 更新当前用户信息（必须发送application/x-www-form-urlencoded格式）
+            updateUser: function() {
+                var self = this;
+                if (!self.userInfo.username) {
+                    self.$message.error('用户名不能为空');
+                    return;
+                }
+
+                self.loading = true;
+
+                // 使用URLSearchParams序列化参数，匹配后端的@RequestParam
+                var params = new URLSearchParams();
+                params.append('username', self.userInfo.username);
+                if (self.userForm.password) {
+                    params.append('password', self.userForm.password);
+                }
+                // createTime不传，因为后端从token获取userId，不从表单获取
+
+                console.log('【个人中心】发送参数:', params.toString()); // 调试用
+
+                axios.post('/api/user/updateCurrent', params, {
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+                    }
+                }).then(function(response) {
+                    console.log('【个人中心】更新响应:', response);
+
+                    var result = response.data;
+                    if (result.code === 200) {
+                        self.$message.success('更新成功');
+                        self.userForm.password = ''; // 清空密码
+                        self.passwordVisible = false; // 重置密码可见性
+                        localStorage.setItem('username', self.userInfo.username); // 更新缓存
+                    } else {
+                        self.$message.error('更新失败：' + result.msg);
+                    }
+                }).catch(function(error) {
+                    console.error('【个人中心】更新异常:', error);
+                    self.$message.error('请求失败：' + (error.response?.data?.msg || error.message));
+                }).finally(function() {
+                    self.loading = false;
+                });
+            },
+
+            // 注销当前用户
+            deleteCurrentUser: function() {
+                var self = this;
+                this.$confirm('确定要注销账号吗？此操作不可恢复！', '警告', {
+                    confirmButtonText: '确定注销',
+                    cancelButtonText: '取消',
+                    type: 'error'
+                }).then(function() {
+                    axios.get('/api/user/deleteCurrent').then(function(response) {
+                        var result = response.data;
+                        if (result.code === 200) {
+                            self.$message.success('注销成功，即将跳转到登录页');
+                            localStorage.removeItem('jwt_token');
+                            localStorage.removeItem('user_role');
+                            localStorage.removeItem('username');
+                            setTimeout(function() {
+                                location.href = 'login.html';
+                            }, 1500);
+                        } else {
+                            self.$message.error('注销失败：' + result.msg);
+                        }
+                    }).catch(function(error) {
+                        console.error('【个人中心】注销异常:', error);
+                        self.$message.error('请求失败：' + (error.response?.data?.msg || error.message));
+                    });
+                }).catch(function() {
+                    // 取消注销
+                });
+            },
+
+            goToIndex: function() {
+                location.href = 'index.html';
+            },
+
+            goToUserList: function() {
+                location.href = 'user-list.html';
+            }
+        },
+        mounted: function() {
+            this.loadCurrentUser();
+        }
+    });
+</script>
+</body>
+</html>
