@@ -42,14 +42,6 @@ public interface UserService {
 
 
     void updateUserById(User user);
-//    /**
-//     * 权限分配接口
-//     * @param userId .
-//     * @param role .
-//     */
-//    void assignPermission(Integer userId, Integer role);
-    //管理员修改信息
-//    void adminUpdateUser(User user);
 
 
 }

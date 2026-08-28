@@ -5,6 +5,9 @@ import io.swagger.v3.oas.models.info.Info;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * api接口文档配置
+ */
 @Configuration
 public class OpenApiConfig {
     @Bean

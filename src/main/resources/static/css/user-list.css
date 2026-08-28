@@ -1,12 +1,12 @@
 /* css/user-list.css - 用户管理页专属样式，仅作用于.user-list-page下的元素 */
 /* 全局变量：和前序页面保持一致，保证品牌统一性 */
 :root {
-    --primary-color: #165DFF;
+    --primary-color: #409eff;/*编辑*/
     --primary-light: rgba(22, 93, 255, 0.1);
     --success-color: #67C23A;
     --danger-color: #F53F3F;
     --info-color: #909399;
-    --admin-color: #F53F3F; /* 管理员标签色 */
+    --admin-color: #101012; /* 管理员标签色 */
     --user-color: #409EFF;   /* 普通用户标签色 */
     --text-main: #333333;
     --text-secondary: #666666;
@@ -220,6 +220,7 @@
 .user-list-page .el-tag--danger {
     background-color: var(--admin-color) !important;
     border-color: var(--admin-color) !important;
+    color: var(--white) !important;
 }
 
 .user-list-page .el-tag--info {
@@ -234,6 +235,7 @@
     background-color: var(--primary-color) !important;
     border: none !important;
     margin-right: 5px;
+    color: var(--white) !important;
 }
 
 .user-list-page .table-delete-btn {

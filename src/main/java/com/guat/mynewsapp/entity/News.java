@@ -22,7 +22,4 @@ public class News {
     private String coverImageUrl; //封面图片 URL，，，，，，，，，，，，，图片表 关联新闻的第一张图片
     private List<NewsImage> images;    //图片列表
 
-    //private Integer viewCount;  //新闻浏览量
-    //private Integer likeCount;  //新闻点赞数
-    //private List<Comment> comments; //评论列表
 }

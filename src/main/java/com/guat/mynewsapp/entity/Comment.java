@@ -5,14 +5,27 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class Comment {
-    private int id;     //评论ID
-    private int newsID;     //评论的新闻的ID---》关联新闻表news的id
-    private int userID;     //评论者的ID---》关联用户表user的id
-    private String comment;     //评论的内容
-    private LocalDate createDate;   //评论的时间
+    private Long id;//评论主键id
+    private Long newsId;//关联帖子的id
+    private Long userId;//关联用户的id
+    private Long parentId;//父评论id
+    private Long toUserId;//回复的用户的id
+    private String content;//内容
+    private Integer status;//评论的状态（是否已经删除）---> 0删除，1正常
+    private Long rootCommentId; // ✅ 新增：根一级评论id
+    private LocalDateTime createTime;//创建时间
+    private LocalDateTime updateTime;//最后修改时间
+
+    // 额外封装字段，数据库不存在，用于前端展示
+    private String username; //回复者
+    private String avatar;//回复者的头像地址
+    private String toUserName;//被回复的用户
+    private Integer children; // 子评论列表
 }

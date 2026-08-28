@@ -61,33 +61,6 @@ public class UserController {
         return Result.success(pageBean);
     }
 
-
-//    /**
-//     * 用户信息修改
-//     * 2025/10/16    只能修改role之外的数据
-//     * @param user 封装修改的数据
-//     * @return 返回提示信息
-//     */
-//    @Operation(
-//            summary = "管理员修改其他用户信息",
-//            description = "用户id从前端传入"
-//    )
-//    @Parameters({
-//            @Parameter(name = "request", description = "请求对象（内含拦截器存入的userId），无需前端传参", hidden = true),
-//            @Parameter(name = "user", description = "用户修改信息（JSON格式），仅支持role外的字段（如用户名、昵称等）", required = true)
-//    })
-//    @PostMapping("/user/update")
-//    public Result updateUser(HttpServletRequest request,@RequestBody User user) {
-//        //从请求域获取拦截器存入的userId，根据ID修改
-//        Integer userId = (Integer) request.getAttribute("userId");
-//        user.setId(userId);
-//        userService.updateUser(user);
-//        return Result.success("用户信息修改成功！");
-//    }
-
-
-
-
     /**
      * 用户信息修改
      * 2025/10/16    只能修改role之外的数据

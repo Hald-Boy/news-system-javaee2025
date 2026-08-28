@@ -206,12 +206,14 @@
     background-color: var(--primary-color) !important;
     border: none !important;
     margin-right: 5px;
+    color: var(--white) !important;
 }
 
 .news-manage-page .table-delete-btn {
     border-radius: var(--radius-sm) !important;
     background-color: var(--danger-color) !important;
     border: none !important;
+
 }
 
 /* 表格加载样式美化 */

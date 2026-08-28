@@ -4,16 +4,31 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class User {
-    private int id; //用户id
-    private String username;    //用户名
-    private String password;    //用户密码
-    private int role;   //用户的身份（0代表用户，1代表管理员，默认是0）
+    private int id;                         //用户id
+    private String username;                //用户名
+    private String password;                //BCrypt加密密码
+    private int role;                       //用户的身份（0代表用户，1代表管理员，默认是0）
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    public LocalDateTime createTime;    //用户的注册时间
+    public LocalDateTime createTime;
+    private String userAccount;             // 8位唯一账号，不可修改
+    private String phone;                   // 手机号，唯一
+    private String avatar;                  // 头像URL
+    private String cover;                   // 封面图URL
+    private String bio;                     // 个人简介
+    private LocalDate birthday;             // 生日
+    private String location;                // 所在地
+    private Integer totalLikeCount;         // 获赞总数
+    private Integer followCount;            // 关注数
+    private Integer fanCount;               // 粉丝数
+    private Integer status;                 //账号的状态 0正常 1封禁
+    private Integer isDeleted;              // 逻辑删除 0未删除 1已删除
+    private LocalDateTime updateTime;
 }

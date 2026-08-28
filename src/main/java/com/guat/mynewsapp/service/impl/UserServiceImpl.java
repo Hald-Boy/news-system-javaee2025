@@ -102,23 +102,4 @@ public class UserServiceImpl implements UserService {
     }
 
 
-//    /**
-//     * //管理员修改信息
-//     * @param user
-//     */
-//    @Override
-//    public void adminUpdateUser(User user) {
-//
-//    }
-
-//    /**
-//     * 权限分配接口
-//     * @param userId .
-//     * @param role .
-//     */
-//    @Override
-//    public void assignPermission(Integer userId, Integer role) {
-//        userMapper.assignPermission(userId, role);
-//    }
-
 }
