@@ -1,10 +1,6 @@
 package com.guat.mynewsapp.controller;
 
-
 import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.TypeReference;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.guat.mynewsapp.annotation.RequiredRole;
 import com.guat.mynewsapp.entity.*;
 import com.guat.mynewsapp.service.NewsService;
@@ -82,6 +78,9 @@ public class NewsController {
         }
     }
 
+
+
+
     /**
      * 修改新闻（含图片）
      */
@@ -139,6 +138,9 @@ public class NewsController {
         }
     }
 
+
+
+
     /**
      * 根据ID查询新闻详情（含图片）
      */
@@ -160,6 +162,9 @@ public class NewsController {
         }
     }
 
+
+
+
     /**
      * 删除新闻（含图片）
      */
@@ -179,6 +184,9 @@ public class NewsController {
             return Result.error("删除新闻失败！");
         }
     }
+
+
+
 
     /**
      * 分页查询新闻

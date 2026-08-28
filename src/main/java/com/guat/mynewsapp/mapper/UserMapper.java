@@ -12,7 +12,10 @@ import java.util.List;
 public interface UserMapper {
 
 
-
+    /**
+     * 查询所有用户
+     * @return 返回所有用户列表
+     */
     @Select("select count(*) from user")
     Long countUsers();
     List<News> selectUsers(String username, Integer role, LocalDate createTime, Integer start, Integer size,LocalDateTime startTime, LocalDateTime endTime);
@@ -31,8 +34,6 @@ public interface UserMapper {
 //    /**
 //     * 注册
 //     */
-//    @Insert("insert into users (username, password, role, create_time) values (#{username},#{password},#{role},#{createTime})")
-//    void addUser(User user);
     @Insert("insert into user (username, password, role, create_time) values (#{username},#{password},#{role},#{createTime})")
     void addUser(User user);
 
