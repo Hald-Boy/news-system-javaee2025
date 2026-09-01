@@ -60,13 +60,13 @@ public class PermissionInterceptor implements HandlerInterceptor {
         return true;
     }
 
-    @Override
-    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
-        log.info("执行权限控制拦截器的postHandle方法");
-    }
+//    @Override
+//    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
+//        log.info("执行权限控制拦截器的postHandle方法");
+//    }
 
-    @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
-        log.info("执行权限控制拦截器的afterCompletion方法");
-    }
+//    @Override
+//    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+//        log.info("执行权限控制拦截器的afterCompletion方法");
+//    }
 }

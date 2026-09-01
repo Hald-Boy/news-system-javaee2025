@@ -59,14 +59,17 @@ public interface UserMapper {
     //修改自己信息
     void updateUserById(User user);
 
-//    /**
-//     * 权限分配接口
-//     * @param userId
-//     * @param role
-//     */
-//    @Update("update user set role = #{role} where id = #{userId}")
-//    void assignPermission(Integer userId, Integer role);
+    //新
 
-    //void adminUpdateUser(User user);
+    User findByPhone(@Param("phone") String phone);
+
+    User findByAccount(@Param("userAccount") String userAccount);
+
+    User findById(@Param("id") Integer id);
+
+    int insert(User user);
+
+    /** 增减获赞总数，delta 可为 ±1 */
+    int updateTotalLikeCount(@Param("id") Integer id, @Param("delta") int delta);
 
 }

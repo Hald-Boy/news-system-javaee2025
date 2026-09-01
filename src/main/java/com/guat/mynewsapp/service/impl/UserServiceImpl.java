@@ -3,8 +3,12 @@ package com.guat.mynewsapp.service.impl;
 import com.guat.mynewsapp.entity.News;
 import com.guat.mynewsapp.entity.PageBean;
 import com.guat.mynewsapp.entity.User;
+import com.guat.mynewsapp.exception.BusinessException;
 import com.guat.mynewsapp.mapper.UserMapper;
+import com.guat.mynewsapp.service.SmsService;
 import com.guat.mynewsapp.service.UserService;
+import com.guat.mynewsapp.utils.RandomAccountUtil;
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +20,11 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private SmsService smsService;
+
+    private static final String PHONE_REGEX = "^1\\d{10}$";
 
 
     public PageBean getAllUsers(String username, Integer role, LocalDate createTime,Integer page,Integer pageSize) {
@@ -99,6 +108,109 @@ public class UserServiceImpl implements UserService {
     @Override
     public void updateUserById(User user) {
         userMapper.updateUserById(user);
+    }
+
+
+    /**
+     * 注册账号
+     * @param phone
+     * @param smsCode
+     * @param password
+     * @return
+     */
+    @Override
+    public User register(String phone, String smsCode, String password) {
+        if (phone == null || !phone.matches(PHONE_REGEX)) {
+            throw new BusinessException("手机号格式不正确");
+        }
+        if (userMapper.findByPhone(phone) != null) {
+            throw new BusinessException("该手机号已注册");
+        }
+        // 校验短信验证码（scene=1 注册）
+        smsService.verifyCode(phone, 1, smsCode);
+
+        User user = new User();
+        user.setPhone(phone);
+//        // 密码可空 = 纯短信账号；设置了密码才能用"手机号+密码"登录
+//        user.setPassword(password == null || password.isEmpty() ? null : password);
+        //如果密码不为空，gensalt() 自动生成随机盐，盐内置在返回字符串里面，不需要单独存数据库
+        if(password != null || !password.isEmpty() ){
+            user.setPassword(BCrypt.hashpw(password,BCrypt.gensalt()));
+        }else {
+            throw new BusinessException("请输入密码");
+        }
+        // 随机昵称：用户 + 4位随机字符
+        user.setUsername(RandomAccountUtil.generateNickname());
+        // 随机账号：11位数字，唯一性重试
+        String account;
+        int retry = 0;
+        do {
+            account = RandomAccountUtil.generateAccount();
+            retry++;
+        } while (userMapper.findByAccount(account) != null && retry < 10);
+        //如果连续 10 次全部撞库（生成的账号全都数据库已有）：循环直接退出，此时account依旧可能是重复账号
+        //拿最后生成的账号再次查询，如果还是重复了那就报异常
+        if (userMapper.findByAccount(account) != null) {
+            throw new BusinessException("账号生成失败，请重试");
+        }
+        user.setUserAccount(account);
+        user.setRole(0);
+        userMapper.insert(user);
+        //插入成功之后，自动设置当前user的id
+        return User.from(userMapper.findById(user.getId()));
+        //return userMapper.findById(user.getId());
+    }
+
+    /**
+     * 用密码登录
+     * @param phone
+     * @param password
+     * @return
+     */
+    @Override
+    public User loginByPassword(String phone, String password) {
+        if (phone == null || password == null || password.isEmpty()) {
+            throw new BusinessException("手机号和密码不能为空");
+        }
+        //根据手机号查询有没有这个用户
+        User user = userMapper.findByPhone(phone);
+        if (user == null) {
+            throw new BusinessException("该手机号未注册");
+        }
+//        if (user.getPassword() == null || !user.getPassword().equals(password)) {
+//            throw new BusinessException("密码错误");
+//        }
+        if(!BCrypt.checkpw(password, user.getPassword())) {
+            throw new BusinessException("密码错误");
+        }
+        return User.from(user);
+    }
+
+    /**
+     * 用验证码登录
+     * @param phone
+     * @param smsCode
+     * @return
+     */
+    @Override
+    public User loginBySms(String phone, String smsCode) {
+        User user = userMapper.findByPhone(phone);
+        if (user == null) {
+            throw new BusinessException("该手机号未注册，请先注册");
+        }
+        // 校验短信验证码（scene=2 登录）
+        smsService.verifyCode(phone, 2, smsCode);
+        return User.from(user);
+    }
+
+    /**
+     * 根据ID查找用户
+     * @param id
+     * @return
+     */
+    @Override
+    public User getById(Integer id) {
+        return User.from(userMapper.findById(id));
     }
 
 

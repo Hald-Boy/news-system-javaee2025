@@ -31,4 +31,25 @@ public class User {
     private Integer status;                 //账号的状态 0正常 1封禁
     private Integer isDeleted;              // 逻辑删除 0未删除 1已删除
     private LocalDateTime updateTime;
+
+    public static User from(User user) {
+        if (user == null) {
+            return null;
+        }
+        User info = new User();
+        info.setId(user.getId());
+        info.setUsername(user.getUsername());
+        info.setUserAccount(user.getUserAccount());
+        info.setPhone(user.getPhone());
+        info.setAvatar(user.getAvatar());
+        info.setCover(user.getCover());
+        info.setBio(user.getBio());
+        info.setLocation(user.getLocation());
+        info.setBirthday(user.getBirthday());
+        info.setTotalLikeCount(user.getTotalLikeCount());
+        info.setFollowCount(user.getFollowCount());
+        info.setFanCount(user.getFanCount());
+        info.setRole(user.getRole());
+        return info;
+    }
 }

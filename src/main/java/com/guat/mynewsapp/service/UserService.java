@@ -44,4 +44,16 @@ public interface UserService {
     void updateUserById(User user);
 
 
+    /** 手机号 + 短信验证码注册，注册后生成随机昵称/账号 */
+    User register(String phone, String smsCode, String password);
+
+    /** 手机号 + 密码登录 */
+    User loginByPassword(String phone, String password);
+
+    /** 手机号 + 短信验证码登录（仅限已注册手机号） */
+    User loginBySms(String phone, String smsCode);
+
+    User getById(Integer id);
+
+
 }

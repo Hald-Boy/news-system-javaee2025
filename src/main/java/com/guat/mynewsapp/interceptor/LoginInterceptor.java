@@ -24,12 +24,12 @@ public class LoginInterceptor implements HandlerInterceptor {
         String url = request.getRequestURL().toString();
         log.info("url:{}",url);
 
-        //2.判断请求的url是否含有login，如果有说明是登录操作，直接放行
-        if(url.endsWith("/login")){
-            log.info("是登录操作，可以放行");
-            //放行！
-            return true; //让代码不再继续执行
-        }
+//        //2.判断请求的url是否含有login，如果有说明是登录操作，直接放行
+//        if(url.endsWith("/login")){
+//            log.info("是登录操作，可以放行");
+//            //放行！
+//            return true; //让代码不再继续执行
+//        }
 
         // 3. 从请求头中获取 Authorization 字段
         String authHeader = request.getHeader("Authorization");

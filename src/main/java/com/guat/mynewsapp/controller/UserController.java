@@ -1,14 +1,22 @@
 package com.guat.mynewsapp.controller;
 
+import com.guat.mynewsapp.dto.LoginPasswordDTO;
+import com.guat.mynewsapp.dto.LoginSmsDTO;
+import com.guat.mynewsapp.dto.RegisterDTO;
+import com.guat.mynewsapp.dto.SmsSendDTO;
 import com.guat.mynewsapp.entity.PageBean;
 import com.guat.mynewsapp.entity.Result;
 import com.guat.mynewsapp.entity.User;
+import com.guat.mynewsapp.interceptor.LoginInterceptor;
 import com.guat.mynewsapp.service.UserService;
+import com.guat.mynewsapp.utils.JwtUtils;
+import com.guat.mynewsapp.utils.UserContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -16,6 +24,8 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 
 // 模块标签（Swagger UI 分类）
 @Tag(name = "用户管理接口", description = "提供用户分页查询、信息修改、个人信息查询、注销、信息更新等功能，部分接口需携带Token授权")
@@ -60,6 +70,8 @@ public class UserController {
         PageBean pageBean = userService.getAllUsers(username,role,createTime,page,pageSize);
         return Result.success(pageBean);
     }
+
+
 
     /**
      * 用户信息修改
@@ -178,6 +190,63 @@ public class UserController {
         log.info("username:{},password:{},createTime:{}",username,password,createTime);
         userService.updateUserById(user);
         return Result.success("修改成功！");
+    }
+
+
+    /** 手机号 + 短信验证码注册（注册成功直接返回 token，即自动登录） */
+    @PostMapping("/register")
+    public Result register(@RequestBody RegisterDTO registerDTO) {
+
+        User user = userService.register(registerDTO.getPhone(), registerDTO.getSmsCode(), registerDTO.getPassWord());
+        return loginResult(user);
+    }
+
+    /** 手机号 + 密码登录 */
+    @PostMapping("/login/password")
+    public Result loginByPassword(@RequestBody LoginPasswordDTO loginPasswordDTO) {
+
+        User user = userService.loginByPassword(loginPasswordDTO.getPhone(), loginPasswordDTO.getPassWord());
+        return loginResult(user);
+    }
+
+    /** 手机号 + 短信验证码登录 */
+    @PostMapping("/login/sms")
+    public Result loginBySms(@RequestBody LoginSmsDTO loginSmsDTO) {
+        User user = userService.loginBySms(loginSmsDTO.getPhone(),loginSmsDTO.getSmsCode());
+        return loginResult(user);
+    }
+
+    /** 退出登录：JWT 无状态，前端删除本地 token 即可，这里仅做兼容返回 */
+    @PostMapping("/logout")
+    public Result logout() {
+        return Result.success();
+    }
+
+
+    /** 获取当前登录用户信息（登录态由拦截器解析 JWT 后写入请求域） */
+    @GetMapping("/info")
+    public Result info(HttpServletRequest request) {
+        return Result.success(userService.getById(UserContext.requireUserId(request)));
+    }
+
+    /**
+     * 登录/注册成功：生成 JWT token 返回给前端
+     * claims 的 key 与现有 LoginInterceptor 解析时一致：id / username / role
+     * @param user 已经插入的数据
+     */
+    private Result loginResult(User user) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("id", user.getId());
+        claims.put("username", user.getUsername());
+        claims.put("role", user.getRole());
+
+        //生成jwt
+        String token = JwtUtils.generateJwt(claims);
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("token", token);
+        data.put("user", user);
+        return Result.success(data);
     }
 
 }
