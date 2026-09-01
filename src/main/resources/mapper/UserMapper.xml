@@ -59,4 +59,27 @@
 
 
 
+    <select id="findByPhone" resultType="User">
+        SELECT * FROM user WHERE phone = #{phone} LIMIT 1
+    </select>
+
+    <select id="findByAccount" resultType="User">
+        SELECT * FROM user WHERE user_account = #{userAccount} LIMIT 1
+    </select>
+
+    <select id="findById" resultType="User">
+        SELECT * FROM user WHERE id = #{id}
+    </select>
+
+    <insert id="insert" parameterType="User" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user (username, password, role, user_account, phone, status, create_time, update_time)
+        VALUES (#{username}, #{password}, 0, #{userAccount}, #{phone}, '0', NOW(), NOW())
+    </insert>
+
+    <update id="updateTotalLikeCount">
+        UPDATE user
+        SET total_like_count = COALESCE(total_like_count, 0) + #{delta}, update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
 </mapper>
