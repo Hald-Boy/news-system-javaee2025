@@ -72,4 +72,10 @@ public interface UserMapper {
     /** 增减获赞总数，delta 可为 ±1 */
     int updateTotalLikeCount(@Param("id") Integer id, @Param("delta") int delta);
 
+    /** 增减关注数，delta 可为 ±1 */
+    int updateFollowCount(@Param("id") Integer id, @Param("delta") int delta);
+
+    /** 增减粉丝数，delta 可为 ±1 */
+    int updateFanCount(@Param("id") Integer id, @Param("delta") int delta);
+
 }

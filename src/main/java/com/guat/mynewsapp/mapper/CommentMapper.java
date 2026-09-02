@@ -34,4 +34,7 @@ public interface CommentMapper {
     int insertComment(Comment comment);
     // 逻辑删除评论
     int deleteComment(@Param("id") Long id, @Param("userId") Long userId);
+
+    /** 增减评论点赞数，delta 可为 ±1 */
+    int updateLikeCount(@Param("id") Long id, @Param("delta") int delta);
 }

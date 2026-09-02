@@ -74,6 +74,12 @@
 
 
 
+<!--    评论点赞/取消点赞-->
+    <update id="updateLikeCount">
+        UPDATE comment
+        SET like_count = COALESCE(like_count, 0) + #{delta}, update_time = NOW()
+        WHERE id = #{id}
+    </update>
 
 
 

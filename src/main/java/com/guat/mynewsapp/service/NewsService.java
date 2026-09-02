@@ -26,4 +26,10 @@ public interface NewsService {
     // 分页查询新闻
     PageBean pageQuery(String title, Integer pageNum, Integer pageSize);
 
+    /** 点赞/取消点赞帖子，返回 {likeCount, isLiked} */
+    Map<String, Object> toggleLike(Integer userId, Integer postId);
+
+    /** 查询点赞状态，userId 为空时按未点赞处理，返回 {likeCount, isLiked} */
+    Map<String, Object> getLikeStatus(Integer userId, Integer postId);
+
 }

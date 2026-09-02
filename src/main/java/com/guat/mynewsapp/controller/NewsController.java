@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.guat.mynewsapp.annotation.RequiredRole;
 import com.guat.mynewsapp.entity.*;
 import com.guat.mynewsapp.service.NewsService;
+import com.guat.mynewsapp.utils.UserContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -16,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 // 模块标签（Swagger UI 分类）
 @Tag(name = "新闻管理接口", description = "提供新闻的增删改查功能，支持新闻图片的上传/修改/删除")
@@ -59,7 +61,7 @@ public class NewsController {
             }
 
             // 设置新闻的创建者
-            news.setUserID(userId);
+            news.setUserId(userId);
             log.info("设置userID为: {}", userId);
 
             // ===== 新增：兼容无图片的情况（避免空指针）=====  2025/12/10  豆包
@@ -112,7 +114,7 @@ public class NewsController {
                 return Result.error("用户未登录或Token无效");
             }
 
-            news.setUserID(userId);  // 确保作者ID正确
+            news.setUserId(userId);  // 确保作者ID正确
             news.setId(id); // 绑定新闻ID
 
             // ===== 简化解析JSON字符串（适配前端传的[5,8]）=====
@@ -214,5 +216,18 @@ public class NewsController {
             e.printStackTrace();
             return Result.error("分页查询新闻失败！");
         }
+    }
+
+
+    /** 点赞 / 取消点赞（需登录） */
+    @PostMapping("/postlike")
+    public Result like(@RequestParam Integer postId, HttpServletRequest request) {
+        return Result.success(newsService.toggleLike(UserContext.requireUserId(request), postId));
+    }
+
+    /** 查询点赞状态（无需登录，未登录视为未点赞） */
+    @GetMapping("/postlike/status")
+    public Result likeStatus(@RequestParam Integer postId, HttpServletRequest request) {
+        return Result.success(newsService.getLikeStatus(UserContext.getUserId(request), postId));
     }
 }
