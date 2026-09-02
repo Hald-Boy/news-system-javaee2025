@@ -22,6 +22,7 @@ public class Comment {
     private Long rootCommentId; // ✅ 新增：根一级评论id
     private LocalDateTime createTime;//创建时间
     private LocalDateTime updateTime;//最后修改时间
+    private Integer likeCount;
 
     // 额外封装字段，数据库不存在，用于前端展示
     private String username; //回复者

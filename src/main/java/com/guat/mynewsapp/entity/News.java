@@ -14,12 +14,26 @@ public class News {
     private Integer id;     //新闻id
     private String title;   //新闻标题
     private String content;     //新闻内容
-    private Integer categoryID;     //分类ID
+    private Integer categoryId;     //分类ID
     private String categoryName; //分类名称
-    private Integer userID;     //作者ID
+    private Integer userId;     //作者ID
     private String userName;//作者名称
     private LocalDateTime createTime;   //新闻发布时间
     private String coverImageUrl; //封面图片 URL，，，，，，，，，，，，，图片表 关联新闻的第一张图片
     private List<NewsImage> images;    //图片列表
+    private Integer viewCount;
+    /** 点赞数（冗余字段） */
+    private Integer likeCount;
+    /** 内容类型：1纯文字 2图文 3视频 4混合 */
+    private Integer mediaType;
+    /** 评论总数（冗余字段） */
+    private Integer commentCount;
+    /** 收藏总数（冗余字段） */
+    private Integer collectCount;
+    /** 状态：0 正常 1 封禁 */
+    private Integer status;
+    /** 逻辑删除标记 */
+    private String isDeleted;
+    private LocalDateTime updateTime;
 
 }

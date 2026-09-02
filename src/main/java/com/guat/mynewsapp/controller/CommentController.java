@@ -4,12 +4,14 @@ import com.guat.mynewsapp.entity.Comment;
 import com.guat.mynewsapp.entity.PageBean;
 import com.guat.mynewsapp.entity.Result;
 import com.guat.mynewsapp.service.CommentService;
+import com.guat.mynewsapp.utils.UserContext;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -97,5 +99,17 @@ public class CommentController {
 
         boolean res = commentService.delComment(id, userId);
         return res ? Result.success("删除成功！"):Result.success("删除失败！");
+    }
+
+    /** 点赞 / 取消点赞评论（需登录） */
+    @PostMapping("/like")
+    public Result like(@RequestParam Long commentId, HttpServletRequest request) {
+        return Result.success(commentService.toggleLike(UserContext.requireUserId(request), commentId));
+    }
+
+    /** 不喜欢 / 取消不喜欢（折叠评论，需登录） */
+    @PostMapping("/dislike")
+    public Result dislike(@RequestParam Long commentId, HttpServletRequest request) {
+        return Result.success(commentService.toggleDislike(UserContext.requireUserId(request), commentId));
     }
 }
