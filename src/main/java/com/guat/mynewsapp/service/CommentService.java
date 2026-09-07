@@ -1,7 +1,7 @@
 package com.guat.mynewsapp.service;
 
 import com.guat.mynewsapp.entity.Comment;
-import com.guat.mynewsapp.entity.PageBean;
+import com.guat.mynewsapp.dto.PageBean;
 
 import java.util.List;
 import java.util.Map;
@@ -9,10 +9,10 @@ import java.util.Map;
 public interface CommentService {
 
     //查询一级评论
-    PageBean getCommentByID(Integer id);
+    PageBean getCommentByID(Integer id,int pageNum, int pageSize);
 
     //查询子评论
-    PageBean getChildComment(Integer newsId, Integer parentId);
+    PageBean getChildComment(Integer newsId, Integer parentId,int pageNum, int pageSize);
 
     //发表评论
     boolean addComment(Comment comment);

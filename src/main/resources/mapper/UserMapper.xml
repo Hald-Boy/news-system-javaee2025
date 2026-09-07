@@ -83,21 +83,21 @@
 <!--    减获赞总数，delta 可为 ±1-->
     <update id="updateTotalLikeCount">
         UPDATE user
-        SET total_like_count = COALESCE(total_like_count, 0) + #{delta}, update_time = NOW()
+        SET total_like_count = GREATEST(COALESCE(total_like_count, 0) + #{delta},0), update_time = NOW()
         WHERE id = #{id}
     </update>
 
 <!--    增减关注数，delta 可为 ±1-->
     <update id="updateFollowCount">
         UPDATE user
-        SET follow_count = COALESCE(follow_count, 0) + #{delta}, update_time = NOW()
+        SET follow_count = GREATEST(COALESCE(follow_count, 0) + #{delta},0), update_time = NOW()
         WHERE id = #{id}
     </update>
 
 <!--    增减粉丝数，delta 可为 ±1-->
     <update id="updateFanCount">
         UPDATE user
-        SET fan_count = COALESCE(fan_count, 0) + #{delta}, update_time = NOW()
+        SET fan_count = GREATEST(COALESCE(fan_count, 0) + #{delta},0), update_time = NOW()
         WHERE id = #{id}
     </update>
 

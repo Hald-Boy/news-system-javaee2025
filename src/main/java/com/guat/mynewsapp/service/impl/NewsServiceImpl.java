@@ -1,5 +1,6 @@
 package com.guat.mynewsapp.service.impl;
 
+import com.guat.mynewsapp.dto.PageBean;
 import com.guat.mynewsapp.entity.*;
 import com.guat.mynewsapp.exception.BusinessException;
 import com.guat.mynewsapp.mapper.*;
@@ -205,9 +206,9 @@ public class NewsServiceImpl implements NewsService {
         // 1. 计算分页起始位置
         int start = (pageNum - 1) * pageSize;
         // 2. 查询分页数据
-        List<News> rows = newsMapper.selectByPage(title, start, pageSize);
+        List<News> list = newsMapper.selectByPage(title, start, pageSize);
         // 遍历新闻，关联查询对应的图片
-        for (News news : rows) {
+        for (News news : list) {
             List<NewsImage> images = newsImageMapper.selectByNewsId(news.getId());
             Category category = categoryMapper.getCategoryById(news.getCategoryId());
             User user = userMapper.getUserById(news.getUserId());
@@ -219,7 +220,7 @@ public class NewsServiceImpl implements NewsService {
         // 3. 查询总记录数
         Long total = newsMapper.selectTotal(title);
         // 4. 封装分页结果
-        return new PageBean(total, rows);
+        return new PageBean(list,total,pageNum,pageSize);
     }
 
 

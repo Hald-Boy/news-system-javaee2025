@@ -1,11 +1,8 @@
 package com.guat.mynewsapp.service;
-import com.guat.mynewsapp.entity.News;
-import com.guat.mynewsapp.entity.NewsLike;
-import com.guat.mynewsapp.entity.PageBean;
+import com.guat.mynewsapp.dto.PageBean;
 import com.guat.mynewsapp.entity.User;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 public interface UserService {
 

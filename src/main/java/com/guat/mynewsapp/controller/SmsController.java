@@ -1,7 +1,7 @@
 package com.guat.mynewsapp.controller;
 
 import com.guat.mynewsapp.dto.SmsSendDTO;
-import com.guat.mynewsapp.entity.Result;
+import com.guat.mynewsapp.dto.Result;
 import com.guat.mynewsapp.service.SmsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

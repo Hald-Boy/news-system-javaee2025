@@ -1,6 +1,6 @@
 package com.guat.mynewsapp.exception;
 
-import com.guat.mynewsapp.entity.Result;
+import com.guat.mynewsapp.dto.Result;
 
 /**
  * 业务异常：Service 层抛出，由 GlobalExceptionHandler 统一转成 Result

@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class User {
-    private int id;                         //用户id
+    private Integer id;                         //用户id
     private String username;                //用户名
     private String password;                //BCrypt加密密码
     private int role;                       //用户的身份（0代表用户，1代表管理员，默认是0）

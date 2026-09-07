@@ -18,7 +18,7 @@ public interface UserMapper {
      */
     @Select("select count(*) from user")
     Long countUsers();
-    List<News> selectUsers(String username, Integer role, LocalDate createTime, Integer start, Integer size,LocalDateTime startTime, LocalDateTime endTime);
+    List<User> selectUsers(String username, Integer role, LocalDate createTime, Integer start, Integer size,LocalDateTime startTime, LocalDateTime endTime);
 
 
 

@@ -1,6 +1,6 @@
 package com.guat.mynewsapp.controller;
 
-import com.guat.mynewsapp.entity.Result;
+import com.guat.mynewsapp.dto.Result;
 import com.guat.mynewsapp.entity.User;
 import com.guat.mynewsapp.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
