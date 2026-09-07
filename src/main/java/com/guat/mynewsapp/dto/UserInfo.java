@@ -13,19 +13,19 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class UserInfo {
 
-    private Integer id;
-    private String username;
-    private String userAccount;
-    private String phone;
-    private String avatar;
-    private String cover;
-    private String bio;
-    private String location;
-    private LocalDate birthday;
-    private Integer totalLikeCount;
-    private Integer followCount;
-    private Integer fanCount;
-    private Integer role;
+    private Integer id;// id
+    private String username;// 用户名
+    private String userAccount;// 账号
+    private String phone;// 手机号
+    private String avatar;//头像url
+    private String cover;// 主页封面图url
+    private String bio;// 个人简介
+    private String location;// 所在地
+    private LocalDate birthday;// 生日
+    private Integer totalLikeCount;// 获赞数
+    private Integer followCount;// 关注数
+    private Integer fanCount;// 粉丝数
+    private Integer role; // 身份
 
     public static UserInfo from(User user) {
         if (user == null) {

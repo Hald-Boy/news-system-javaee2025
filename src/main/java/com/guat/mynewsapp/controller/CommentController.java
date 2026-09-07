@@ -1,17 +1,14 @@
 package com.guat.mynewsapp.controller;
 
 import com.guat.mynewsapp.entity.Comment;
-import com.guat.mynewsapp.entity.PageBean;
-import com.guat.mynewsapp.entity.Result;
+import com.guat.mynewsapp.dto.PageBean;
+import com.guat.mynewsapp.dto.Result;
 import com.guat.mynewsapp.service.CommentService;
 import com.guat.mynewsapp.utils.UserContext;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @RestController
@@ -27,9 +24,9 @@ public class CommentController {
      * @return 返回所有一级评论
      */
     @GetMapping("/list")
-    public Result getAllComment(Integer id) {
+    public Result<PageBean<Comment>> getAllComment(Integer id,int pageNum, int pageSize) {
 
-        PageBean pageBean = commentService.getCommentByID(id);
+        PageBean<Comment> pageBean = commentService.getCommentByID(id, pageNum, pageSize);
         return Result.success(pageBean);
     }
 
@@ -41,9 +38,9 @@ public class CommentController {
      * @return 返回封装好的子评论
      */
     @GetMapping("listChild")
-    public Result getCommentChild(Integer newsId, Integer parentId) {
+    public Result<PageBean<Comment>> getCommentChild(Integer newsId, Integer parentId,int pageNum, int pageSize) {
 
-        PageBean pageBean = commentService.getChildComment(newsId, parentId);
+        PageBean<Comment> pageBean = commentService.getChildComment(newsId, parentId, pageNum, pageSize);
         return Result.success(pageBean);
     }
 

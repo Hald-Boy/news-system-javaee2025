@@ -1,6 +1,6 @@
 package com.guat.mynewsapp.exception;
 
-import com.guat.mynewsapp.entity.Result;
+import com.guat.mynewsapp.dto.Result;
 import io.jsonwebtoken.JwtException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;

@@ -1,11 +1,10 @@
 package com.guat.mynewsapp.service;
 
+import com.guat.mynewsapp.dto.PageBean;
 import com.guat.mynewsapp.entity.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 

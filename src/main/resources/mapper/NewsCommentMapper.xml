@@ -20,7 +20,7 @@
                  LEFT JOIN user u ON c.user_id = u.id
         WHERE c.news_id = #{newsId} AND c.parent_id = 0 AND c.status = 1
         ORDER BY c.create_time DESC
-            LIMIT 0, 15
+            LIMIT #{pageNum}, #{pageSize}
     </select>
     <!-- 统计一级评论总数 -->
     <select id="countRootComment" resultType="java.lang.Long">
@@ -46,8 +46,8 @@
                  LEFT JOIN user u ON c.user_id = u.id
                  LEFT JOIN user tu ON c.to_user_id = tu.id
         WHERE c.news_id = #{newsId} AND c.root_comment_id = #{rootCommentId} AND c.status = 1
-        ORDER BY c.create_time ASC
-            LIMIT 0,4
+        ORDER BY c.create_time
+            LIMIT #{pageNum}, #{pageSize}
     </select>
     <!-- 统计子评论总数 -->
     <select id="countChildComment" resultType="java.lang.Long">

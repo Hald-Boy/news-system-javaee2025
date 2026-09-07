@@ -2,6 +2,8 @@ package com.guat.mynewsapp.controller;
 
 import com.alibaba.fastjson2.JSON;
 import com.guat.mynewsapp.annotation.RequiredRole;
+import com.guat.mynewsapp.dto.PageBean;
+import com.guat.mynewsapp.dto.Result;
 import com.guat.mynewsapp.entity.*;
 import com.guat.mynewsapp.service.NewsService;
 import com.guat.mynewsapp.utils.UserContext;
@@ -17,7 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 // 模块标签（Swagger UI 分类）
 @Tag(name = "新闻管理接口", description = "提供新闻的增删改查功能，支持新闻图片的上传/修改/删除")

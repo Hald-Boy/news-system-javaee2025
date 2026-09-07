@@ -2,7 +2,7 @@ package com.guat.mynewsapp.service.impl;
 
 import com.guat.mynewsapp.entity.Comment;
 import com.guat.mynewsapp.entity.CommentLike;
-import com.guat.mynewsapp.entity.PageBean;
+import com.guat.mynewsapp.dto.PageBean;
 import com.guat.mynewsapp.exception.BusinessException;
 import com.guat.mynewsapp.mapper.CommentDislikeMapper;
 import com.guat.mynewsapp.mapper.CommentLikeMapper;
@@ -37,13 +37,17 @@ public class CommentServiceImpl implements CommentService {
      * @return 封装一级评论和条数
      */
     @Override
-    public PageBean getCommentByID(Integer id) {
+    public PageBean<Comment> getCommentByID(Integer id,int pageNum, int pageSize) {
+
+        if(pageNum < 1) pageNum = 1;
+        int page = (pageNum - 1) * pageSize;
 
         //获取所有一级评论
-        List<Comment> rows = commentMapper.getCommentByNewsId(id);
+        List<Comment> list = commentMapper.getCommentByNewsId(id,page,pageSize);
         //获取一级评论的条数
         Long total = commentMapper.countRootComment(id) ;
-        return new PageBean(total,rows);
+        long safeTotal = total == null ? 0 : total;
+        return new PageBean<>(list,safeTotal,pageNum,pageSize);
     }
 
 
@@ -56,14 +60,18 @@ public class CommentServiceImpl implements CommentService {
      * @return 封装结果
      */
     @Override
-    public PageBean getChildComment(Integer newsId, Integer parentId) {
+    public PageBean<Comment> getChildComment(Integer newsId, Integer parentId,int pageNum, int pageSize) {
+
+        if(pageNum < 1) pageNum = 1;
+        int page = (pageNum - 1) * pageSize;
 
         //根据newsId和parentId查询所有的子评论
-        List<Comment> rows = commentMapper.getChildComment(newsId, parentId);
+        List<Comment> list = commentMapper.getChildComment(newsId, parentId,page,pageSize);
         //获取子评论的条数
         Long total = commentMapper.countChildComment(newsId, parentId);
+        long safeTotal = total == null ? 0 : total;
 
-        return new PageBean(total,rows);
+        return new PageBean<>(list,safeTotal,pageNum,pageSize);
     }
 
 

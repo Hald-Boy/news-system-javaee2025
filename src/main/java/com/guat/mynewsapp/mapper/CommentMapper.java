@@ -12,14 +12,14 @@ public interface CommentMapper {
 
     //查询所有一级评论
     //传入帖子ID
-    List<Comment> getCommentByNewsId(Integer newsId);
+    List<Comment> getCommentByNewsId(Integer newsId, int pageNum, int pageSize);
     // 统计一级评论总条数（用于分页total）
     Long countRootComment(Integer newsId);
 
 
     //查询帖子的子评论
     //传入帖子ID和父评论ID
-    List<Comment> getChildComment(Integer newsId, Integer rootCommentId);
+    List<Comment> getChildComment(Integer newsId, Integer rootCommentId, int pageNum, int pageSize);
     //统计某个父评论下子评论总数
     Long countChildComment(Integer newsId, Integer rootCommentId);
 

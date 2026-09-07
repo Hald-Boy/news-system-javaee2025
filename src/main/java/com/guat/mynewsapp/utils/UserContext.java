@@ -1,6 +1,6 @@
 package com.guat.mynewsapp.utils;
 
-import com.guat.mynewsapp.entity.Result;
+import com.guat.mynewsapp.dto.Result;
 import com.guat.mynewsapp.exception.BusinessException;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -13,8 +13,8 @@ public class UserContext {
      * 可选获取用户ID：拿不到返回null，不抛异常
      * 接口支持游客访问，登录才拿到用户 id，不登录也可以正常访问接口。
      * 举例：查看帖子详情。游客可以看；登录用户看的时候额外标记是否点赞。
-     * @param request
-     * @return
+     * @param request 请求头
+     * @return 返回用户id
      */
     public static Integer getUserId(HttpServletRequest request) {
         // 从请求域读取拦截器存放的 userId

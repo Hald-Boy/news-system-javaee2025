@@ -1,7 +1,6 @@
 package com.guat.mynewsapp.service.impl;
 
-import com.guat.mynewsapp.entity.News;
-import com.guat.mynewsapp.entity.PageBean;
+import com.guat.mynewsapp.dto.PageBean;
 import com.guat.mynewsapp.entity.User;
 import com.guat.mynewsapp.exception.BusinessException;
 import com.guat.mynewsapp.mapper.UserMapper;
@@ -27,12 +26,12 @@ public class UserServiceImpl implements UserService {
     private static final String PHONE_REGEX = "^1\\d{10}$";
 
 
-    public PageBean getAllUsers(String username, Integer role, LocalDate createTime,Integer page,Integer pageSize) {
+    public PageBean<User> getAllUsers(String username, Integer role, LocalDate createTime,Integer page,Integer pageSize) {
 
 
         //获取分页查询的起始索引
         int start = (page - 1)*page;
-        PageBean pageBean = new PageBean();
+        PageBean<User> pageBean = new PageBean<>();
 
         LocalDateTime startTime = null; // 当日00:00:00
         LocalDateTime endTime = null;   // 当日23:59:59
@@ -42,8 +41,10 @@ public class UserServiceImpl implements UserService {
         }
 
         //调用Mapper接口的方法
-        pageBean.setRows(userMapper.selectUsers(username,role,createTime,start,pageSize,startTime,endTime)); //用户列表
+        pageBean.setList(userMapper.selectUsers(username,role,createTime,start,pageSize,startTime,endTime)); //用户列表
         pageBean.setTotal(userMapper.countUsers()); //总记录数
+        pageBean.setPageNum(page);
+        pageBean.setPageSize(pageSize);
         return pageBean;
     }
 
