@@ -4,10 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data       //生成set/get方法和toString方法的注解
+@Data                   //生成set/get方法和toString方法的注解
 @NoArgsConstructor      //生成无参构造的方法
 @AllArgsConstructor     //生成全参构造的方法
-
 public class Result<T> {
 
     public static final int CODE_SUCCESS = 200;       // 成功
@@ -19,59 +18,14 @@ public class Result<T> {
     private String msg;  //响应信息 描述字符串
     private T data; //返回的数据
 
-//    //增删改 成功响应
-//    public static Result success(){
-//        return new Result(CODE_SUCCESS,"success",null);
-//    }
-//
-//
-//    //查询 成功响应
-//    public static Result success(Object data){
-//        return new Result(CODE_SUCCESS,"success",data);
-//    }
-//
-//
-//    //失败响应
-//    public static Result error(String msg){
-//        return new Result(CODE_BAD_REQUEST,msg,null);
-//    }
-public static <T> Result<T> success() {
-    return new Result<>(CODE_SUCCESS, "success", null);
-}
+    public static <T> Result<T> success() {return new Result<>(CODE_SUCCESS, "success", null);}
+    public static <T> Result<T> success(T data) {return new Result<>(CODE_SUCCESS, "success", data);}
 
-    public static <T> Result<T> success(T data) {
-        return new Result<>(CODE_SUCCESS, "success", data);
-    }
 
     public static <T> Result<T> error(String msg) {
         return new Result<>(CODE_BAD_REQUEST, msg, null);
     }
-
     public static <T> Result<T> error(int code, String msg) {
         return new Result<>(code, msg, null);
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public void setCode(int code) {
-        this.code = code;
-    }
-
-    public String getMessage() {
-        return msg;
-    }
-
-    public void setMessage(String msg) {
-        this.msg = msg;
-    }
-
-    public T getData() {
-        return data;
-    }
-
-    public void setData(T data) {
-        this.data = data;
     }
 }

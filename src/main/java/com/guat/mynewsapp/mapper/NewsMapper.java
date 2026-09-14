@@ -39,6 +39,13 @@ public interface NewsMapper {
     /** 增减帖子点赞数，delta 可为 ±1 */
     int updateLikeCount(@Param("id") Integer id, @Param("delta") int delta);
 
+    /** 增减帖子收藏数，delta 可为 ±1 */
+    // 2026/9/7  P1新增
+    int updateCollectCount(@Param("id") Integer id, @Param("delta") int delta);
+
+    /**增减评论总数*/
+    int updateCommentCount(@Param("id") Long id, @Param("delta") int delta);
+
     /** 某用户的帖子数（我的作品） */
     int countByUserId(@Param("userId") Integer userId);
 

@@ -1,17 +1,18 @@
 package com.guat.mynewsapp.service.impl;
 
-import com.guat.mynewsapp.dto.PageBean;
-import com.guat.mynewsapp.dto.PostCardVO;
-import com.guat.mynewsapp.dto.UserInfo;
-import com.guat.mynewsapp.dto.UserProfileVO;
+import com.guat.mynewsapp.dto.*;
 import com.guat.mynewsapp.entity.User;
 import com.guat.mynewsapp.exception.BusinessException;
 import com.guat.mynewsapp.mapper.NewsMapper;
 import com.guat.mynewsapp.mapper.UserMapper;
 import com.guat.mynewsapp.service.FollowService;
 import com.guat.mynewsapp.service.ProfileService;
+import com.guat.mynewsapp.utils.UserContext;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 import java.util.Map;
@@ -72,4 +73,9 @@ public class ProfileServiceImpl implements ProfileService {
         List<PostCardVO> list = newsMapper.listByUserId(userId, (pageNum - 1) * pageSize, pageSize);
         return new PageBean<>(list, total, pageNum, pageSize);
     }
+
+
+    /** 编辑个人资料（需登录）：昵称/头像/背景/简介/生日/所在地，生日传 yyyy-MM-dd 或空 */
+
+
 }

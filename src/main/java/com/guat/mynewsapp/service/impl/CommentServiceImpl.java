@@ -7,6 +7,7 @@ import com.guat.mynewsapp.exception.BusinessException;
 import com.guat.mynewsapp.mapper.CommentDislikeMapper;
 import com.guat.mynewsapp.mapper.CommentLikeMapper;
 import com.guat.mynewsapp.mapper.CommentMapper;
+import com.guat.mynewsapp.mapper.NewsMapper;
 import com.guat.mynewsapp.service.CommentService;
 import com.guat.mynewsapp.entity.CommentDislike;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,9 @@ public class CommentServiceImpl implements CommentService {
 
     @Autowired
     private CommentDislikeMapper commentDislikeMapper;
+
+    @Autowired
+    private NewsMapper newsMapper;
 
     /**
      * 根据帖子ID去查询所有的一级评论
@@ -88,6 +92,7 @@ public class CommentServiceImpl implements CommentService {
      * @return 返回值是受影响的记录数，如果插入成功受影响条数为1，否则为0
      *          所以>0代表插入成功，反之则插入失败。
      */
+    @Transactional(rollbackFor = Exception.class) // 加上事务
     @Override
     public boolean addComment(Comment comment) {
 
@@ -111,24 +116,31 @@ public class CommentServiceImpl implements CommentService {
             if (parentComment.getRootCommentId() == null) {
                 comment.setRootCommentId(parentComment.getId());
             } else {
-                // 父本身也是子评论 → 直接继承父已经存好的顶层rootId （回复其他楼的哥们）
+                // 情况3：父本身也是子评论 → 直接继承父已经存好的顶层rootId （回复其他楼的哥们）
                 comment.setRootCommentId(parentComment.getRootCommentId());
             }
         }
+        int total =  commentMapper.insertComment(comment);
+        // 评论数+1
+        newsMapper.updateCommentCount(comment.getNewsId(),1);
         //操作数据库受影响的条数
-        //1>0 返回true，0>0则返回false
-        return commentMapper.insertComment(comment) > 0;
-
+        //返回true或返回false
+        return total > 0;
     }
 
     /**
      * 删除评论
      * @param id, userId
-     * @return
+     * @return 删除成功返回真，反之假
      */
+    @Transactional(rollbackFor = Exception.class) // 加上事务
     @Override
     public boolean delComment(Long id, Long userId) {
-        return  commentMapper.deleteComment(id, userId) > 0;
+        Comment comment = commentMapper.selectById(id);
+        int total = commentMapper.deleteComment(id, userId);
+        // 评论数-1
+        newsMapper.updateCommentCount(comment.getNewsId(),-1);
+        return  total > 0;
     }
 
 

@@ -1,6 +1,7 @@
 package com.guat.mynewsapp.service.impl;
 
 import com.guat.mynewsapp.dto.PageBean;
+import com.guat.mynewsapp.dto.UserInfo;
 import com.guat.mynewsapp.entity.User;
 import com.guat.mynewsapp.exception.BusinessException;
 import com.guat.mynewsapp.mapper.UserMapper;
@@ -13,6 +14,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -24,6 +27,8 @@ public class UserServiceImpl implements UserService {
     private SmsService smsService;
 
     private static final String PHONE_REGEX = "^1\\d{10}$";
+
+    private static final DateTimeFormatter BIRTHDAY_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
 
     public PageBean<User> getAllUsers(String username, Integer role, LocalDate createTime,Integer page,Integer pageSize) {
@@ -73,11 +78,11 @@ public class UserServiceImpl implements UserService {
 
     /**
      * 修改用户信息
-     * @param user 封装修改的数据
+     * @param userInfo 封装修改的数据
      */
     @Override
-    public void updateUser(User user) {
-        userMapper.updateUser(user);
+    public void updateUser(UserInfo userInfo) {
+        userMapper.updateUser(userInfo);
     }
 
     /**
@@ -215,4 +220,31 @@ public class UserServiceImpl implements UserService {
     }
 
 
+    /**
+     * 编辑个人信息
+     * @param userId
+     * @param userinfo
+     * @return
+     */
+    @Override
+    public UserInfo updateProfile(Integer userId, UserInfo userinfo) {
+        User user = userMapper.findById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        userMapper.updateProfile(userId, userinfo);
+        return UserInfo.from(userMapper.findById(userId));
+    }
+
+    /** 去空格，空串转 null，超长报错 */
+    private String trimToNull(String value, int maxLen, String field) {
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
+        String v = value.trim();
+        if (v.length() > maxLen) {
+            throw new BusinessException(field + "最多" + maxLen + "个字符");
+        }
+        return v;
+    }
 }

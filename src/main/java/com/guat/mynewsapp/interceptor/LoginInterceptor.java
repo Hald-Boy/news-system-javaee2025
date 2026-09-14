@@ -65,15 +65,4 @@ public class LoginInterceptor implements HandlerInterceptor {
             throw new JwtException("无效的令牌");
         }
     }
-
-    @Override   //目标资源方法运行后执行
-    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
-        System.out.println("执行拦截器的postHandle方法");
-
-    }
-
-    @Override   //视图渲染完毕后运行，最后运行
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
-        System.out.println("执行拦截器的afterCompletion方法");
-    }
 }

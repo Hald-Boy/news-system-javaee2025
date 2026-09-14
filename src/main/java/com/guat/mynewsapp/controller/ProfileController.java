@@ -1,17 +1,13 @@
 package com.guat.mynewsapp.controller;
 
-import com.guat.mynewsapp.dto.PageBean;
-import com.guat.mynewsapp.dto.PostCardVO;
-import com.guat.mynewsapp.dto.Result;
-import com.guat.mynewsapp.dto.UserProfileVO;
+import com.guat.mynewsapp.dto.*;
+import com.guat.mynewsapp.entity.User;
 import com.guat.mynewsapp.service.ProfileService;
+import com.guat.mynewsapp.service.UserService;
 import com.guat.mynewsapp.utils.UserContext;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 个人主页接口
@@ -22,6 +18,9 @@ public class ProfileController {
 
     @Autowired
     private ProfileService profileService;
+
+    @Autowired
+    private UserService userService;
 
     /**
      * 个人主页（无需登录，未登录 isFollowing=false；看自己也走这里）
@@ -47,5 +46,11 @@ public class ProfileController {
                                               @RequestParam(defaultValue = "1") int pageNum,
                                               @RequestParam(defaultValue = "10") int pageSize) {
         return Result.success(profileService.listUserPosts(userId, pageNum, pageSize));
+    }
+
+    /** 编辑个人资料（需登录）：昵称/头像/背景/简介/生日/所在地，生日传 yyyy-MM-dd 或空 */
+    @PostMapping("/profile/update")
+    public Result<UserInfo> updateProfile(@RequestBody UserInfo userinfo, HttpServletRequest request) {
+        return Result.success(userService.updateProfile(UserContext.requireUserId(request), userinfo));
     }
 }

@@ -1,10 +1,6 @@
 package com.guat.mynewsapp.controller;
 
-import com.guat.mynewsapp.dto.LoginPasswordDTO;
-import com.guat.mynewsapp.dto.LoginSmsDTO;
-import com.guat.mynewsapp.dto.RegisterDTO;
-import com.guat.mynewsapp.dto.PageBean;
-import com.guat.mynewsapp.dto.Result;
+import com.guat.mynewsapp.dto.*;
 import com.guat.mynewsapp.entity.User;
 import com.guat.mynewsapp.service.UserService;
 import com.guat.mynewsapp.utils.JwtUtils;
@@ -73,7 +69,7 @@ public class UserController {
     /**
      * 用户信息修改
      * 2025/10/16    只能修改role之外的数据
-     * @param user 封装修改的数据
+     * @param userInfo 封装修改的数据
      * @return 返回提示信息
      */
     @Operation(
@@ -84,9 +80,9 @@ public class UserController {
             @Parameter(name = "user", description = "用户修改信息（JSON格式），仅支持role外的字段（如用户名、昵称等）", required = true)
     })
     @PostMapping("/user/update")
-    public Result updateUser(@RequestBody User user) {
+    public Result updateUser(@RequestBody UserInfo userInfo) {
         //要修改的用户的id由前端传入
-        userService.updateUser(user);
+        userService.updateUser(userInfo);
         return Result.success("用户信息修改成功！");
     }
 

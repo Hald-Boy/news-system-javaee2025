@@ -1,5 +1,6 @@
 package com.guat.mynewsapp.mapper;
 
+import com.guat.mynewsapp.dto.UserInfo;
 import com.guat.mynewsapp.entity.News;
 import com.guat.mynewsapp.entity.User;
 import org.apache.ibatis.annotations.*;
@@ -39,10 +40,10 @@ public interface UserMapper {
 
     /**
      * 修改用户信息
-     * @param user .
+     * @param userInfo .
      */
     //@Update("update user set username = #{username}, password = #{password}, role = #{role} where id = #{id}")
-    void updateUser(User user);
+    void updateUser(UserInfo userInfo);
 
     /**
      * 用户信息查询
@@ -77,5 +78,8 @@ public interface UserMapper {
 
     /** 增减粉丝数，delta 可为 ±1 */
     int updateFanCount(@Param("id") Integer id, @Param("delta") int delta);
+
+    /** 更新个人资料（昵称/头像/背景/简介/生日/所在地），birthday 传 yyyy-MM-dd 或空 */
+    int updateProfile(Integer userId, UserInfo  userInfo);
 
 }

@@ -101,4 +101,19 @@
         WHERE id = #{id}
     </update>
 
+<!--    修改个人资料-->
+    <update id="updateProfile" parameterType="com.guat.mynewsapp.dto.UserInfo">
+        UPDATE user
+        <set>
+            <if test="userInfo.username != null">username = #{userInfo.username},</if>
+            <if test="userInfo.avatar != null">avatar = #{userInfo.avatar},</if>
+            <if test="userInfo.cover != null">cover = #{userInfo.cover},</if>
+            <if test="userInfo.bio != null">bio = #{userInfo.bio},</if>
+            <if test="userInfo.birthday != null">birthday = #{userInfo.birthday},</if>
+            <if test="userInfo.location != null">location = #{userInfo.location},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{userId}
+    </update>
+
 </mapper>

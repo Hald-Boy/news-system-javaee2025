@@ -3,7 +3,9 @@ package com.guat.mynewsapp.controller;
 import com.guat.mynewsapp.entity.Comment;
 import com.guat.mynewsapp.dto.PageBean;
 import com.guat.mynewsapp.dto.Result;
+import com.guat.mynewsapp.mapper.NewsMapper;
 import com.guat.mynewsapp.service.CommentService;
+import com.guat.mynewsapp.service.NewsService;
 import com.guat.mynewsapp.utils.UserContext;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +19,9 @@ public class CommentController {
 
     @Autowired
     CommentService commentService;
+
+    @Autowired
+    NewsMapper  newsMapper;
 
     /**
      * 查询某帖子的所有一级评论
@@ -95,6 +100,7 @@ public class CommentController {
         Long userId = Long.valueOf(userIdInt);
 
         boolean res = commentService.delComment(id, userId);
+
         return res ? Result.success("删除成功！"):Result.success("删除失败！");
     }
 
