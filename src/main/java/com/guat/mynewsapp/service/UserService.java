@@ -1,5 +1,6 @@
 package com.guat.mynewsapp.service;
 import com.guat.mynewsapp.dto.PageBean;
+import com.guat.mynewsapp.dto.UserInfo;
 import com.guat.mynewsapp.entity.User;
 
 import java.time.LocalDate;
@@ -25,7 +26,7 @@ public interface UserService {
     /**
      * 用户信息修改
      */
-    void updateUser(User user);
+    void updateUser(UserInfo userInfo);
 
     /**
      * 用户信息查询
@@ -51,6 +52,9 @@ public interface UserService {
     User loginBySms(String phone, String smsCode);
 
     User getById(Integer id);
+
+    /** 更新个人资料（昵称/头像/背景/简介/生日/所在地），birthday 传 yyyy-MM-dd 或空 */
+    UserInfo updateProfile(Integer userId, UserInfo userinfo);
 
 
 }

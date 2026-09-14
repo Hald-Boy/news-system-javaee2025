@@ -77,8 +77,19 @@
         WHERE id = #{id}
     </update>
 
+<!--    增减收藏数-->
+    <update id="updateCollectCount">
+        UPDATE news
+        SET collect_count = COALESCE(collect_count, 0) + #{delta}, update_time = NOW()
+        WHERE id = #{id}
+    </update>
 
-
+<!--    评论数增减-->
+    <update id="updateCommentCount">
+        UPDATE news
+        SET comment_count = COALESCE(comment_count, 0) + #{delta}, update_time = NOW()
+        WHERE id = #{id}
+    </update>
 
 
 <!--    关于个人主页的帖子事宜-->

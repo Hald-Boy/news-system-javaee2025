@@ -15,6 +15,7 @@ public class PostCardVO {
     private Integer id;
     private String title;
     private String content;
+    private String userName;
     private Integer likeCount;
     private Integer commentCount;
     private Integer collectCount;
