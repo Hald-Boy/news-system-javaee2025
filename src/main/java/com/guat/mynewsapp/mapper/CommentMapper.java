@@ -37,4 +37,7 @@ public interface CommentMapper {
 
     /** 增减评论点赞数，delta 可为 ±1 */
     int updateLikeCount(@Param("id") Long id, @Param("delta") int delta);
+
+    /** 更新评论状态：status 0 删除(下架) 1 正常 */
+    int updateStatus(@Param("id") Long id, @Param("status") Integer status);
 }

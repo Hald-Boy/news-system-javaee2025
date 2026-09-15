@@ -53,4 +53,7 @@ public interface NewsMapper {
     List<PostCardVO> listByUserId(@Param("userId") Integer userId,
                                   @Param("offset") int offset,
                                   @Param("limit") int limit);
+
+    /** 更新帖子状态：status 0 正常 1 下架(封禁) */
+    int updateStatus(@Param("id") Integer id, @Param("status") Integer status);
 }
