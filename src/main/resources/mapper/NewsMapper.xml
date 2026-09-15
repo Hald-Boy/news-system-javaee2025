@@ -118,4 +118,9 @@
         ORDER BY n.create_time DESC
         LIMIT #{offset}, #{limit}
     </select>
+
+<!--    更新帖子状态：status 0 正常 1 下架(封禁)-->
+    <update id="updateStatus">
+        UPDATE news SET status = #{status}, update_time = NOW() WHERE id = #{id}
+    </update>
 </mapper>

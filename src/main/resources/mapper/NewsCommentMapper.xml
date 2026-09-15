@@ -81,7 +81,10 @@
         WHERE id = #{id}
     </update>
 
-
+<!--    更新评论状态：status 0 删除(下架) 1 正常-->
+    <update id="updateStatus">
+        UPDATE comment SET status = #{status}, update_time = NOW() WHERE id = #{id}
+    </update>
 
 
 
