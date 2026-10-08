@@ -38,16 +38,17 @@ public class CommentServiceImpl implements CommentService {
      * 根据帖子ID去查询所有的一级评论
      *
      * @param id 帖子的ID
+     * @param currentUserId 当前登录用户ID（可为 null，游客不附带点赞状态）
      * @return 封装一级评论和条数
      */
     @Override
-    public PageBean<Comment> getCommentByID(Integer id,int pageNum, int pageSize) {
+    public PageBean<Comment> getCommentByID(Integer id, int pageNum, int pageSize, Integer currentUserId) {
 
         if(pageNum < 1) pageNum = 1;
         int page = (pageNum - 1) * pageSize;
 
         //获取所有一级评论
-        List<Comment> list = commentMapper.getCommentByNewsId(id,page,pageSize);
+        List<Comment> list = commentMapper.getCommentByNewsId(id,page,pageSize,currentUserId);
         //获取一级评论的条数
         Long total = commentMapper.countRootComment(id) ;
         long safeTotal = total == null ? 0 : total;
@@ -61,16 +62,17 @@ public class CommentServiceImpl implements CommentService {
      *
      * @param newsId 帖子ID
      * @param parentId 父评论ID
+     * @param currentUserId 当前登录用户ID（可为 null，游客不附带点赞状态）
      * @return 封装结果
      */
     @Override
-    public PageBean<Comment> getChildComment(Integer newsId, Integer parentId,int pageNum, int pageSize) {
+    public PageBean<Comment> getChildComment(Integer newsId, Integer parentId,int pageNum, int pageSize, Integer currentUserId) {
 
         if(pageNum < 1) pageNum = 1;
         int page = (pageNum - 1) * pageSize;
 
         //根据newsId和parentId查询所有的子评论
-        List<Comment> list = commentMapper.getChildComment(newsId, parentId,page,pageSize);
+        List<Comment> list = commentMapper.getChildComment(newsId, parentId,page,pageSize,currentUserId);
         //获取子评论的条数
         Long total = commentMapper.countChildComment(newsId, parentId);
         long safeTotal = total == null ? 0 : total;
@@ -81,12 +83,6 @@ public class CommentServiceImpl implements CommentService {
 
 
     /**新增评论
-     *              ⚠⚠
-     *             ⚠⚠⚠⚠
-     *           ⚠⚠⚠⚠⚠⚠⚠⚠
-     *         ⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠
-     *  ⚠⚠⚠⚠⚠⚠⚠ 逻辑较为复制 ⚠⚠⚠⚠⚠⚠⚠⚠
-     *         ⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠
      * @param comment 评论的信息（"帖子newsId", "父parentId", "回复谁toUserId", "内容comment")
      *                传入的参数有多种组合
      * @return 返回值是受影响的记录数，如果插入成功受影响条数为1，否则为0
@@ -95,6 +91,8 @@ public class CommentServiceImpl implements CommentService {
     @Transactional(rollbackFor = Exception.class) // 加上事务
     @Override
     public boolean addComment(Comment comment) {
+
+
 
         comment.setStatus(1); //设置评论有效
         comment.setCreateTime(LocalDateTime.now()); //设置评论的时间
@@ -150,6 +148,21 @@ public class CommentServiceImpl implements CommentService {
      * @param userId 传入用户id
      * @param commentId 传入要点赞的评论id
      * @return 把评论当前的点赞数和用户行为 点赞/取消点赞 1/0 结果封装返回
+     * 成功返回格式：isLiked为true代表是点赞操作/为false代表是取消点赞操作；likeCount代表当前评论的点赞总数
+     * {
+     * 	"code": 200,
+     * 	"msg": "success",
+     * 	"data": {
+     * 		"isLiked": false,
+     * 		"likeCount": 0
+     * 	    }
+     * }
+     * 失败返回格式：
+     * {
+     * 	"code": 400,
+     * 	"msg": "评论不存在",
+     * 	"data": null
+     * }
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -188,7 +201,7 @@ public class CommentServiceImpl implements CommentService {
         //获取评论当前的获赞总数封装数据返回给前端
         //int likeCount = (comment.getLikeCount() == null ? 0 : comment.getLikeCount()) + delta;    并发很高时可能用旧值计算，下面重新查询数据库较为稳妥
         Comment comment1 = commentMapper.selectById(commentId);
-        int likeCount = (comment1.getLikeCount() == null ? 0 : comment1.getLikeCount()) + delta;
+        int likeCount = (comment1.getLikeCount() == null ? 0 : comment1.getLikeCount());
         // 封装结果
         Map<String, Object> result = new HashMap<>();
         //防止极端情况点赞数变成负数。
@@ -202,7 +215,6 @@ public class CommentServiceImpl implements CommentService {
     /**
      * 评论折叠功能，调用的是CommentDislikeMapper.java
      * 用户点击“踩”时调用调用
-     *
      * @param userId 当前登录的用户id
      * @param commentId 评论的id
      * @return 给前端返回true/false决定是否渲染折叠评论
@@ -241,6 +253,12 @@ public class CommentServiceImpl implements CommentService {
         return result;
     }
 
+    /**
+     * 查询当前用户已折叠的评论 id 集合（评论列表初始化时用）
+     * @param userId 当前登录用户的id
+     * @param commentIds 某帖子的一页评论id合集
+     * @return 返回折叠评论id合集
+     */
     @Override
     public List<Long> getFoldedCommentIds(Long userId, List<Long> commentIds) {
         if (userId == null || commentIds == null || commentIds.isEmpty()) {
@@ -248,6 +266,4 @@ public class CommentServiceImpl implements CommentService {
         }
         return commentDislikeMapper.findFoldedCommentIds(userId, commentIds);
     }
-
-
 }

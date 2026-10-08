@@ -18,4 +18,9 @@ public interface NewsImageMapper {
 
     // 根据新闻ID删除图片
     int deleteByNewsId(Integer newsId);
+
+    // 逻辑删除图片（按ID集合，标记 is_deleted 为 1，保留数据与文件）
+    int logicalDeleteByIds(@Param("ids") List<Integer> ids);
+
+    int updateById(NewsImage newsImage);
 }

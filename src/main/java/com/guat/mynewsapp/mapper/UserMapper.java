@@ -17,7 +17,7 @@ public interface UserMapper {
      * 查询所有用户
      * @return 返回所有用户列表
      */
-    @Select("select count(*) from user")
+    @Select("select count(*) from user where is_deleted is null or is_deleted = '0'")
     Long countUsers();
     List<User> selectUsers(String username, Integer role, LocalDate createTime, Integer start, Integer size,LocalDateTime startTime, LocalDateTime endTime);
 
@@ -42,7 +42,6 @@ public interface UserMapper {
      * 修改用户信息
      * @param userInfo .
      */
-    //@Update("update user set username = #{username}, password = #{password}, role = #{role} where id = #{id}")
     void updateUser(UserInfo userInfo);
 
     /**
@@ -54,7 +53,7 @@ public interface UserMapper {
     User getUserById(Integer id);
 
 
-    @Delete("delete from user where id = #{id}")
+    @Update("update user set is_deleted = '1', update_time = now() where id = #{id}")
     void deleteUserById(Integer id);
 
     //修改自己信息

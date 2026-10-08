@@ -1,6 +1,7 @@
 package com.guat.mynewsapp.dto;
 
 import com.guat.mynewsapp.entity.User;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,6 +10,7 @@ import java.time.LocalDate;
 /**
  * 对外返回的用户信息（不含密码）
  */
+@Schema(description = "用户对外信息（不含密码），编辑个人资料时作为请求体")
 @Data
 @NoArgsConstructor
 public class UserInfo {
@@ -21,6 +23,7 @@ public class UserInfo {
     private String cover;// 主页封面图url
     private String bio;// 个人简介
     private String location;// 所在地
+    @Schema(description = "生日（格式 yyyy-MM-dd）", example = "2000-01-01")
     private LocalDate birthday;// 生日
     private Integer totalLikeCount;// 获赞数
     private Integer followCount;// 关注数

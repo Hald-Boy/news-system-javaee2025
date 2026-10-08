@@ -11,15 +11,15 @@ import java.util.List;
 public interface CommentMapper {
 
     //查询所有一级评论
-    //传入帖子ID
-    List<Comment> getCommentByNewsId(Integer newsId, int pageNum, int pageSize);
+    //传入帖子ID；currentUserId 为当前登录用户ID（可为 null，游客不查点赞状态）
+    List<Comment> getCommentByNewsId(Integer newsId, int pageNum, int pageSize, Integer currentUserId);
     // 统计一级评论总条数（用于分页total）
     Long countRootComment(Integer newsId);
 
 
     //查询帖子的子评论
-    //传入帖子ID和父评论ID
-    List<Comment> getChildComment(Integer newsId, Integer rootCommentId, int pageNum, int pageSize);
+    //传入帖子ID和父评论ID；currentUserId 为当前登录用户ID（可为 null，游客不查点赞状态）
+    List<Comment> getChildComment(Integer newsId, Integer rootCommentId, int pageNum, int pageSize, Integer currentUserId);
     //统计某个父评论下子评论总数
     Long countChildComment(Integer newsId, Integer rootCommentId);
 
