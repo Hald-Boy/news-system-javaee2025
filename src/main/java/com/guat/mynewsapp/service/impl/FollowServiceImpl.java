@@ -1,7 +1,6 @@
 package com.guat.mynewsapp.service.impl;
 
 import com.guat.mynewsapp.dto.PageBean;
-import com.guat.mynewsapp.dto.Result;
 import com.guat.mynewsapp.dto.UserCardVO;
 import com.guat.mynewsapp.dto.UserInfo;
 import com.guat.mynewsapp.entity.User;
@@ -31,8 +30,14 @@ public class FollowServiceImpl implements FollowService {
      *
      * @param userId 当前登录用户的id
      * @param targetUserId 当前用户关注者的id
-     * @return 返回是关注还是取消关注
-     * 2026/9/3 --hzw
+     * @return 关注返回true取消关注返回false
+     * {
+     *  "code": 200,
+     *  "msg": "success",
+     *  "data": {
+     *      "isFollowing": true
+     *      }
+     * }
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -63,7 +68,7 @@ public class FollowServiceImpl implements FollowService {
         } else if (Integer.valueOf(1).equals(record.getIsCancel())) {
             // 如果已经存在关注记录，但isCancel ！= 1，说明已取消关注
             // 之前已取消 -> 本次操作为：重新关注，设置isCancel为 0，旧isCancel为 1
-            // 并发情况：⚠⚠⚠ 2026/9/4 设计
+            // 并发情况： 2026/9/4 设计
             // 就是线程A和线程B都读到isCancel=1，（我们设置的旧状态是1），线程A比线程B稍快，线程A在线程B更新isCancel之前就已经把isCancel更新成了0，也就是先执行
             // UPDATE user_follow SET is_cancel = 0 ,update_time = NOW() WHERE id = 100 AND is_cancel = 1,条件满足，此刻数据库的isCancel真实数据变成了0，受影响条数为1
             // 线程B就会执行 UPDATE user_follow SET is_cancel = 0 ,update_time = NOW() WHERE id = 100 AND is_cancel = 1,此时真实的is_cancel=0条件不满足，受影响条数为0
@@ -82,7 +87,7 @@ public class FollowServiceImpl implements FollowService {
             delta = 1;
         } else {
             // 已关注 -> 本次操作为：取消关注
-            // 并发情况：⚠⚠⚠
+            // 并发情况：
             // 就是线程A和线程B都读到isCancel=0，（我们设置的旧状态是0），线程A比线程B稍快，线程A在线程B更新isCancel之前就已经把isCancel更新成了1，也就是先执行
             // UPDATE user_follow SET is_cancel = 1 ,update_time = NOW() WHERE id = 100 AND is_cancel = 0,条件满足，此刻数据库的isCancel真实数据变成了1，受影响条数为1
             // 线程B就会执行 UPDATE user_follow SET is_cancel = 1 ,update_time = NOW() WHERE id = 100 AND is_cancel = 0,此时条件不满足，受影响条数为0
@@ -153,6 +158,7 @@ public class FollowServiceImpl implements FollowService {
         return result;
     }
 
+
     /**
      * 关注列表
      * 可在“设置”设置为他人可见/不可见
@@ -160,7 +166,7 @@ public class FollowServiceImpl implements FollowService {
      * @param userId 被查看关注列表者的id
      * @param pageNum 页码
      * @param pageSize 一页记录数
-     * @return
+     * @return 返回关注列表用户卡片，条数，页码，一页记录数
      */
     @Override
     public PageBean<UserCardVO> listFollowing(Integer viewerId, Integer userId, int pageNum, int pageSize) {
@@ -171,6 +177,7 @@ public class FollowServiceImpl implements FollowService {
         return new PageBean<>(buildCards(viewerId, users), total, pageNum, pageSize);
     }
 
+
     /**
      * 粉丝列表
      * 可在“设置”设置为他人可见/不可见
@@ -178,7 +185,7 @@ public class FollowServiceImpl implements FollowService {
      * @param userId 被查看粉丝列表者的id
      * @param pageNum 页码
      * @param pageSize 一页记录数
-     * @return
+     * @return 返回粉丝列表用户卡片，条数，页码，一页记录数
      */
     @Override
     public PageBean<UserCardVO> listFans(Integer viewerId, Integer userId, int pageNum, int pageSize) {
@@ -188,6 +195,7 @@ public class FollowServiceImpl implements FollowService {
         List<User> users = userFollowMapper.listFans(userId.longValue(), (pageNum - 1) * pageSize, pageSize);
         return new PageBean<>(buildCards(viewerId, users), total, pageNum, pageSize);
     }
+
 
     /**
      * 给关注/粉丝列表组装卡片，批量判断 isFollowing / isMutual，避免逐条查库

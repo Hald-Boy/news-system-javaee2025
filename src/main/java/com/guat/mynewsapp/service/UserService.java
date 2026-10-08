@@ -28,14 +28,10 @@ public interface UserService {
      */
     void updateUser(UserInfo userInfo);
 
+
     /**
-     * 用户信息查询
-     * @param id 根据ID来
-     * @return 返回一个用户
+     * 注销当前登录用户（逻辑删除：is_deleted='1'，保留数据避免关联记录成孤儿）
      */
-    User getUserById(Integer id);
-
-
     void deleteUserById(Integer id);
 
 
@@ -55,6 +51,9 @@ public interface UserService {
 
     /** 更新个人资料（昵称/头像/背景/简介/生日/所在地），birthday 传 yyyy-MM-dd 或空 */
     UserInfo updateProfile(Integer userId, UserInfo userinfo);
+
+    /** 修改当前登录用户密码：校验旧密码后，新密码 BCrypt 加密入库 */
+    void changePassword(Integer userId, String oldPassword, String newPassword);
 
 
 }

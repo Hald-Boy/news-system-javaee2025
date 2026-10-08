@@ -1,5 +1,6 @@
 package com.guat.mynewsapp.entity;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,6 +12,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Schema(description = "评论实体（新增评论请求体，查询时返回）")
 public class Comment {
     private Long id;//评论主键id
     private Long newsId;//关联帖子的id
@@ -29,4 +31,6 @@ public class Comment {
     private String avatar;//回复者的头像地址
     private String toUserName;//被回复的用户
     private Integer children; // 子评论列表
+    /** 当前登录用户是否已点赞（查询时按 currentUserId 附带，未登录/未点赞为 false） */
+    private Boolean liked;
 }

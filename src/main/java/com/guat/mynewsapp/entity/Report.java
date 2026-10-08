@@ -1,5 +1,6 @@
 package com.guat.mynewsapp.entity;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
  */
 @Data
 @NoArgsConstructor
+@Schema(description = "举报实体（提交举报请求体）")
 public class Report {
 
     private Long id;

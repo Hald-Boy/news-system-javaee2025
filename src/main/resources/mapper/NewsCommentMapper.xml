@@ -3,7 +3,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.guat.mynewsapp.mapper.CommentMapper">
 
-    <!-- 查询一级评论，附带子评论数量childCount -->
+    <!-- 查询一级评论，附带子评论数量childCount 与 当前用户点赞状态liked -->
     <select id="getCommentByNewsId" resultType="com.guat.mynewsapp.entity.Comment">
         SELECT
             c.id,
@@ -15,7 +15,14 @@
             c.status,
             c.create_time,
             u.username,
-            (SELECT COUNT(1) FROM comment child WHERE child.root_comment_id = c.id AND child.status=1) AS children
+            c.like_count,
+            (SELECT COUNT(1) FROM comment child WHERE child.root_comment_id = c.id AND child.status=1) AS children,
+            (SELECT CASE WHEN EXISTS(
+                SELECT 1 FROM comment_like cl
+                WHERE cl.comment_id = c.id AND cl.user_id = #{currentUserId}
+                  AND cl.is_cancel = 0
+                  AND (cl.is_deleted IS NULL OR cl.is_deleted = 0)
+            ) THEN 1 ELSE 0 END) AS liked
         FROM comment c
                  LEFT JOIN user u ON c.user_id = u.id
         WHERE c.news_id = #{newsId} AND c.parent_id = 0 AND c.status = 1
@@ -28,7 +35,7 @@
     </select>
 
 
-    <!-- 查询子评论 -->
+    <!-- 查询子评论，附带当前用户点赞状态liked -->
     <select id="getChildComment" resultType="com.guat.mynewsapp.entity.Comment">
         SELECT
             c.id,
@@ -41,7 +48,14 @@
             c.root_comment_id,
             c.create_time,
             u.username,
-            tu.username as toUserName
+            c.like_count,
+            tu.username as toUserName,
+            (SELECT CASE WHEN EXISTS(
+                SELECT 1 FROM comment_like cl
+                WHERE cl.comment_id = c.id AND cl.user_id = #{currentUserId}
+                  AND cl.is_cancel = 0
+                  AND (cl.is_deleted IS NULL OR cl.is_deleted = 0)
+            ) THEN 1 ELSE 0 END) AS liked
         FROM comment c
                  LEFT JOIN user u ON c.user_id = u.id
                  LEFT JOIN user tu ON c.to_user_id = tu.id

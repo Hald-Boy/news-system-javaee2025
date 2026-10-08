@@ -5,17 +5,24 @@
 <mapper namespace="com.guat.mynewsapp.mapper.UserMapper">
 
 
+    <!-- 分页查询用户（管理员用；过滤逻辑删除，返回常用字段） -->
     <select id="selectUsers" resultType="com.guat.mynewsapp.entity.User">
         select
         id,
         username,
         role,
+        user_account,
+        phone,
+        status,
+        avatar,
+        bio,
         create_time
         from user
         <where>
             <if test="username != null and username != ''">username like concat('%',#{username},'%') </if>
             <if test="role != null">role = #{role} </if>
             <if test="createTime != null"> create_time BETWEEN #{startTime} AND #{endTime} </if>
+            AND (is_deleted IS NULL OR is_deleted = '0')
         </where>
         order by create_time desc limit #{start},#{size}
     </select>
@@ -25,8 +32,7 @@
 
 
 
-
-    <!--    修改自己信息-->
+    <!--    修改自己信息（含改密码：仅传 password 时不会产生悬空逗号）-->
     <update id="updateUserById" parameterType="com.guat.mynewsapp.entity.User">
         update user
         <set>
@@ -35,24 +41,22 @@
             <!-- 只有password不为null时，才更新password -->
             <if test="password != null">password = #{password},</if>
             <!-- 只有createtime不为null时，才更新createtime -->
-            <if test="createTime != null">create_time = #{createTime}</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            update_time = NOW()
         </set>
         where id = #{id} <!-- 必须有id，定位要修改的user -->
     </update>
 
 
-    <!--    管理员修改他人信息-->
-    <update id="updateUser" parameterType="com.guat.mynewsapp.entity.User">
+    <!--    管理员修改他人信息（参数为 UserInfo：id 必传，username/role 可选）-->
+    <update id="updateUser" parameterType="com.guat.mynewsapp.dto.UserInfo">
         update user
         <set>
             <!-- 只有username不为null时，才更新username -->
             <if test="username != null">username = #{username},</if>
-            <!-- 只有password不为null时，才更新password -->
-            <if test="password != null">password = #{password},</if>
-            <!-- role非空判断 -->
+            <!-- 只有role不为null时，才更新role -->
             <if test="role != null">role = #{role},</if>
-            <!-- 只有createtime不为null时，才更新createtime -->
-            <if test="createTime != null">create_time = #{createTime}</if>
+            update_time = NOW()
         </set>
         where id = #{id} <!-- 必须有id，定位要修改的user -->
     </update>

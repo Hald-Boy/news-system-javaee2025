@@ -22,7 +22,8 @@ public interface NewsMapper {
     int update(News news);
 
     // 删除新闻
-    int delete(Integer id);
+    /** 逻辑删除：标记 is_deleted='1'，保留数据与文件 */
+    int logicalDelete(@Param("id") Integer id);
 
     // 根据ID查询新闻
     News selectById(Integer id);

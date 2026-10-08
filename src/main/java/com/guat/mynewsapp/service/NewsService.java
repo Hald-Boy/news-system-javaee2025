@@ -1,5 +1,8 @@
 package com.guat.mynewsapp.service;
 
+import com.guat.mynewsapp.dto.MediaKeepDTO;
+import com.guat.mynewsapp.dto.NewsDTO;
+import com.guat.mynewsapp.dto.NewsEditDTO;
 import com.guat.mynewsapp.dto.PageBean;
 import com.guat.mynewsapp.entity.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -10,20 +13,20 @@ import java.util.Map;
 
 public interface NewsService {
 
-// 新增新闻（含图片）
+    // 新增新闻（含图片）
     void add(News news, MultipartFile[] newImages) throws IOException;
 
     // 修改新闻（含图片新增/删除）
-    void update(News news, MultipartFile[] newImages, List<Integer> deleteImageIds) throws IOException;
+    void update(Integer id, NewsEditDTO newsEditDTO, MultipartFile[] newImages, List<MediaKeepDTO> keepMediaList, List<Integer> newMediaSortList, Integer loginUserId, Integer loginUserRole) throws IOException;
 
     // 根据ID查询新闻（含图片）
     News getById(Integer id);
 
     // 删除新闻（含图片）
-    void delete(Integer id) throws IOException;
+    void delete(Integer id, Integer loginUserId, Integer loginUserRole) throws IOException;
 
     // 分页查询新闻
-    PageBean pageQuery(String title, Integer pageNum, Integer pageSize);
+    PageBean<News> pageQuery(String title, Integer pageNum, Integer pageSize);
 
     /** 点赞/取消点赞帖子，返回 {likeCount, isLiked} */
     Map<String, Object> toggleLike(Integer userId, Integer postId);

@@ -23,12 +23,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         // addPathPatterns代表要拦截的所有路径，excludePathPatterns("/login")代表唯独不拦截登录路径
-        registry.addInterceptor(loginInterceptor).addPathPatterns("/api/**").excludePathPatterns(
-                "/api/login/password",
-                "/api/login/sms",
-                "/api/register",
-                "/api/sms/send"
-        ).order(1);
+        registry.addInterceptor(loginInterceptor).addPathPatterns("/api/**", "/logout").excludePathPatterns("/publicApi/**").order(1);
         // 指定拦截所有/api/开头的请求路径
         registry.addInterceptor(permissionInterceptor).addPathPatterns("/api/**").order(2);
     }

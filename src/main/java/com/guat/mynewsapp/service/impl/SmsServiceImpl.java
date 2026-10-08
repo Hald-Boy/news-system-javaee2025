@@ -5,7 +5,6 @@ import com.guat.mynewsapp.exception.BusinessException;
 import com.guat.mynewsapp.mapper.SmsCodeMapper;
 import com.guat.mynewsapp.service.SmsService;
 import com.guat.mynewsapp.utils.RandomAccountUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

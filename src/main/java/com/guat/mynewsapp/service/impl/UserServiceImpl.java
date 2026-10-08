@@ -34,8 +34,8 @@ public class UserServiceImpl implements UserService {
     public PageBean<User> getAllUsers(String username, Integer role, LocalDate createTime,Integer page,Integer pageSize) {
 
 
-        //获取分页查询的起始索引
-        int start = (page - 1)*page;
+        //获取分页查询的起始索引（修复：原来写成 (page-1)*page，第2页起错位）
+        int start = (page - 1) * pageSize;
         PageBean<User> pageBean = new PageBean<>();
 
         LocalDateTime startTime = null; // 当日00:00:00
@@ -86,20 +86,8 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * 查询用户信息
-     * 查询回显，从请求头获取id
-     * @param id 根据ID查询
-     * @return 返回一条记录
-     */
-    @Override
-    public User getUserById(Integer id) {
-        return userMapper.getUserById(id);
-    }
-
-    /**
-     * 注销账号（删除）
+     * 注销账号（逻辑删除：is_deleted='1'，保留数据避免关联记录成孤儿）
      * @param id 要删除的用户的ID
-     * @return 不用返回zhi
      */
     @Override
     public void deleteUserById(Integer id) {
@@ -234,6 +222,27 @@ public class UserServiceImpl implements UserService {
         }
         userMapper.updateProfile(userId, userinfo);
         return UserInfo.from(userMapper.findById(userId));
+    }
+
+    /**
+     * 修改当前登录用户密码：校验旧密码后，新密码 BCrypt 加密入库
+     * @param userId 当前登录用户 id
+     * @param oldPassword 旧密码（明文，用于校验）
+     * @param newPassword 新密码（明文，加密后入库）
+     */
+    @Override
+    public void changePassword(Integer userId, String oldPassword, String newPassword) {
+        User user = userMapper.findById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        if (user.getPassword() == null || !BCrypt.checkpw(oldPassword, user.getPassword())) {
+            throw new BusinessException("旧密码不正确");
+        }
+        User upd = new User();
+        upd.setId(userId);
+        upd.setPassword(BCrypt.hashpw(newPassword, BCrypt.gensalt()));
+        userMapper.updateUserById(upd);
     }
 
     /** 去空格，空串转 null，超长报错 */

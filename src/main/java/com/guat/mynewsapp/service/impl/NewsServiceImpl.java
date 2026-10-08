@@ -1,21 +1,26 @@
 package com.guat.mynewsapp.service.impl;
 
+import com.guat.mynewsapp.dto.MediaKeepDTO;
+import com.guat.mynewsapp.dto.NewsEditDTO;
 import com.guat.mynewsapp.dto.PageBean;
 import com.guat.mynewsapp.entity.*;
 import com.guat.mynewsapp.exception.BusinessException;
 import com.guat.mynewsapp.mapper.*;
 import com.guat.mynewsapp.service.NewsService;
 import com.guat.mynewsapp.utils.FileUploadUtil;
+import com.guat.mynewsapp.utils.UserContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -33,13 +38,13 @@ public class NewsServiceImpl implements NewsService {
     private FileUploadUtil fileUploadUtil;
 
     @Autowired
-    private CategoryMapper categoryMapper;
-
-    @Autowired
     private UserMapper userMapper;
 
     @Autowired
     private PostLikeMapper  postLikeMapper;
+
+    @Autowired
+    private NewsImageMapper imageMapper;
 
 
     /**
@@ -51,6 +56,8 @@ public class NewsServiceImpl implements NewsService {
     @Transactional(rollbackFor = Exception.class) // 任意异常都回滚
     @Override
     public void add(News news, MultipartFile[] newImages) throws IOException {
+        // 0. 计算内容类型：有图=图文(2)，无图=纯文字(1)；视频(3)/混合(4) 待视频上传功能支持
+        news.setMediaType(newImages != null && newImages.length > 0 ? 2 : 1);
         // 1. 新增新闻主表
         newsMapper.insert(news);
         Integer newsId = news.getId(); // 新增新闻后，获取自增ID
@@ -72,6 +79,8 @@ public class NewsServiceImpl implements NewsService {
                 newsImage.setNewsId(newsId);
                 newsImage.setImageUrl(imageUrl);
                 newsImage.setSortOrder(i + 1);
+                // 2026/9/17 9:53 目前还没有开发图片和混合的情况，这里简单控制一下media_type为图片，1图片，2视频，3混合
+                newsImage.setMediaId(1);
                 imageList.add(newsImage);
             }
             // 批量插入图片
@@ -85,40 +94,71 @@ public class NewsServiceImpl implements NewsService {
 
 
     /**
-     * 修改新闻，删除服务器本地文件和数据库url
-     * @param news .
-     * @param newImages .
-     * @param deleteImageIds .
-     * @throws IOException .
+     * 修改新闻：支持标题/内容编辑、新增图片、删除图片、拖拽排序
+     * 参数约定（keepMediaList / newMediaSortList 均为 JSON 字符串，由 Controller 解析）：
+     *  - keepMediaList：前端编辑后【要保留】的旧图片列表，元素含 id 和拖拽后的新 sortOrder
+     *      传 null → 不动旧图片；传 [] → 删除全部旧图片；只列部分 → 未列出的旧图片被删除
+     *  - newMediaSortList：与 newImages 文件一一对应的排序号数组，如 [3,4]
+     *      不传时新图片自动追加到已有图片之后
      */
     @Transactional(rollbackFor = Exception.class) // 任意异常都回滚
     @Override
-    public void update(News news, MultipartFile[] newImages, List<Integer> deleteImageIds) throws IOException {
-        // 1. 更新新闻主表
-        newsMapper.update(news);
-        Integer newsId = news.getId();
-
-        // 2. 处理图片删除（如果有要删除的图片ID）
-        if (deleteImageIds != null && !deleteImageIds.isEmpty()) {
-            // 查询要删除的图片信息（获取URL用于删文件）
-            List<NewsImage> deleteImages = newsImageMapper.selectByNewsId(newsId);
-            deleteImages.stream()
-                    .filter(img -> {
-                        // 新增这行：打印ID值+类型
-                        System.out.println("图片ID：" + img.getId() + "，类型：" + img.getId().getClass().getName());
-                        System.out.println("deleteImageIds中的元素类型：" + deleteImageIds.get(0).getClass().getName());
-                        return deleteImageIds.contains(img.getId());
-                    })
-                    .forEach(img -> fileUploadUtil.deleteFile(img.getImageUrl()));
-            // 删除数据库中的图片记录
-            newsImageMapper.deleteByIds(deleteImageIds);
+    public void update(Integer id, NewsEditDTO newsEditDTO, MultipartFile[] newImages, List<MediaKeepDTO> keepMediaList, List<Integer> newMediaSortList, Integer loginUserId, Integer loginUserRole) throws IOException {
+        //1. 查询原有帖子
+        News oldNews = newsMapper.selectById(id);
+        if (oldNews == null || "1".equals(oldNews.getIsDeleted())) {
+            throw new IllegalArgumentException("帖子不存在或已删除");
         }
 
-        // 3. 处理新增图片（如果有）
+        // 权限校验：本人 or 管理员
+        boolean isAuthor = oldNews.getUserId().equals(loginUserId);
+        boolean isAdmin = 1 == loginUserRole;
+        if (!isAuthor && !isAdmin) {
+            throw new IllegalArgumentException("你无权限编辑该帖子");
+        }
+
+        //2. 更新帖子标题、内容、更新时间
+        oldNews.setTitle(newsEditDTO.getTitle());
+        oldNews.setContent(newsEditDTO.getContent());
+        oldNews.setUpdateTime(LocalDateTime.now());
+        newsMapper.update(oldNews);
+
+        //3. 处理旧图片（删除 + 拖拽排序）
+        List<NewsImage> dbImageList = imageMapper.selectByNewsId(id);
+        // keepMediaList == null 表示前端未操作图片 → 全部保留；空列表 → 全部删除
+        if (keepMediaList != null) {
+            // 需要保留的图片id集合（统一转 Long 比较，避免 Integer/Long equals 永远 false 的坑）
+            List<Long> keepMediaIds = keepMediaList.stream().map(MediaKeepDTO::getId).toList();
+
+            // 3.1 删除不在保留列表中的图片：软删（标记 is_deleted 为 1，保留数据与本地文件）
+            List<Integer> deleteImageIds = new ArrayList<>();
+            for (NewsImage dbImage : dbImageList) {
+                if (!keepMediaIds.contains(dbImage.getId().longValue())) {
+                    deleteImageIds.add(dbImage.getId());
+                }
+            }
+            if (!deleteImageIds.isEmpty()) {
+                imageMapper.logicalDeleteByIds(deleteImageIds);
+            }
+
+            // 3.2 保留的图片：按前端传的新 sortOrder 更新（拖拽换位）
+            for (MediaKeepDTO keep : keepMediaList) {
+                NewsImage updateImage = new NewsImage();
+                updateImage.setId(keep.getId().intValue());
+                updateImage.setSortOrder(keep.getSortOrder());
+                imageMapper.updateById(updateImage);
+            }
+        }
+
+        //4. 处理本次新上传图片：newMediaSortList 与 newImages 文件一一对应，指定各自排序号
         if (newImages != null && newImages.length > 0) {
-            // 根据新闻ID查询当前最大排序号
-            List<NewsImage> existImages = newsImageMapper.selectByNewsId(newsId);
-            int maxSort = existImages.stream().mapToInt(NewsImage::getSortOrder).max().orElse(0);
+            // 兜底排序基准：优先取保留列表的最大排序号；没传保留列表就用数据库当前最大排序号
+            int baseSort;
+            if (keepMediaList != null && !keepMediaList.isEmpty()) {
+                baseSort = keepMediaList.stream().mapToInt(MediaKeepDTO::getSortOrder).max().orElse(0);
+            } else {
+                baseSort = dbImageList.stream().mapToInt(NewsImage::getSortOrder).max().orElse(0);
+            }
 
             List<NewsImage> imageList = new ArrayList<>();
             for (int i = 0; i < newImages.length; i++) {
@@ -126,20 +166,39 @@ public class NewsServiceImpl implements NewsService {
                 if (file.isEmpty()) {
                     continue;
                 }
-                //保存图片到服务器本地，返回文件的URL保存到数据库
+                // 上传图片获取URL
                 String imageUrl = fileUploadUtil.upload(file);
-
+                // 封装图片实体：排序号优先取前端指定，否则追加到末尾
                 NewsImage newsImage = new NewsImage();
-                newsImage.setNewsId(newsId);
+                newsImage.setNewsId(id);
                 newsImage.setImageUrl(imageUrl);
-                newsImage.setSortOrder(maxSort + i + 1); // 排序号递增
+                newsImage.setMediaId(1); // 目前只支持图片，media_type=1
+                Integer sortOrder = (newMediaSortList != null && i < newMediaSortList.size() && newMediaSortList.get(i) != null)
+                        ? newMediaSortList.get(i)
+                        : baseSort + i + 1;
+                newsImage.setSortOrder(sortOrder);
                 imageList.add(newsImage);
             }
-            //保存url到数据库
+            // 批量插入图片
             if (!imageList.isEmpty()) {
-                newsImageMapper.batchInsert(imageList);
+                imageMapper.batchInsert(imageList);
             }
         }
+
+        //5. 重新统计剩余有效图片，刷新帖子的 mediaType（1纯文字 2图文）
+        refreshMediaInfo(id);
+    }
+
+
+    /**
+     * 根据帖子当前剩余的有效图片数刷新 media_type：有图=2(图文)，无图=1(纯文字)
+     */
+    private void refreshMediaInfo(Integer newsId) {
+        List<NewsImage> images = imageMapper.selectByNewsId(newsId);
+        News updateNews = new News();
+        updateNews.setId(newsId);
+        updateNews.setMediaType(images.isEmpty() ? 1 : 2);
+        newsMapper.update(updateNews);
     }
 
 
@@ -169,26 +228,33 @@ public class NewsServiceImpl implements NewsService {
     }
 
 
-
-
     /**
-     * 删除新闻
-     * @param id .
-     * @throws IOException .
+     *
+     * @param id 帖子id
+     * @param loginUserId 当前登录的用户id
+     * @param loginUserRole 当前登录用户的身份
+     * @throws IOException ..
      */
     @Transactional(rollbackFor = Exception.class) // 任意异常都回滚
     @Override
-    public void delete(Integer id) throws IOException {
-        // 1. 查询关联图片（用于删文件）
-        List<NewsImage> images = newsImageMapper.selectByNewsId(id);
-        // 4. 删除图片文件
-        for (NewsImage img : images) {
-            fileUploadUtil.deleteFile(img.getImageUrl());
+    public void delete(Integer id, Integer loginUserId, Integer loginUserRole) throws IOException {
+
+        // 1. 先查询这条帖子
+        News news = newsMapper.selectById(id);
+        // 帖子不存在 或者 已经被逻辑删除
+        if (news == null || "1".equals(news.getIsDeleted())) {
+            throw new BusinessException("帖子不存在或已删除");
         }
-        // 3. 删除图片关联表
-        newsImageMapper.deleteByNewsId(id);
-        // 2. 删除新闻主表
-        newsMapper.delete(id);
+
+        // 2. 权限判断：管理员  OR 帖子的发布者本人
+        boolean isAdmin = 1 == loginUserRole; //假设role=1代表管理员，你按自己字段改
+        boolean isAuthor = loginUserId.equals(news.getUserId());
+
+        if (!isAdmin && !isAuthor) {
+            throw new BusinessException("无权限删除该帖子，只能删除自己发布的内容");
+        }
+        // 逻辑删除：仅标记 is_deleted='1'，保留数据与文件（全站查询均按 is_deleted 过滤）
+        newsMapper.logicalDelete(id);
     }
 
 
@@ -202,25 +268,23 @@ public class NewsServiceImpl implements NewsService {
      * @return .
      */
     @Override
-    public PageBean pageQuery(String title, Integer pageNum, Integer pageSize) {
+    public PageBean<News> pageQuery(String title, Integer pageNum, Integer pageSize) {
         // 1. 计算分页起始位置
         int start = (pageNum - 1) * pageSize;
         // 2. 查询分页数据
         List<News> list = newsMapper.selectByPage(title, start, pageSize);
-        // 遍历新闻，关联查询对应的图片
+        // 遍历新闻，关联查询对应的图片和作者
         for (News news : list) {
             List<NewsImage> images = newsImageMapper.selectByNewsId(news.getId());
-            Category category = categoryMapper.getCategoryById(news.getCategoryId());
             User user = userMapper.getUserById(news.getUserId());
 
             news.setImages(images); // 将图片列表设置到News对象中
-            news.setCategoryName(category.getName());
             news.setUserName(user.getUsername());
         }
         // 3. 查询总记录数
         Long total = newsMapper.selectTotal(title);
         // 4. 封装分页结果
-        return new PageBean(list,total,pageNum,pageSize);
+        return new PageBean<>(list,total,pageNum,pageSize);
     }
 
 
@@ -261,7 +325,7 @@ public class NewsServiceImpl implements NewsService {
             postLikeMapper.updateCancel(record.getId(), 1);
             delta = -1;
         }
-        // 三处冗余计数保持一致：post_like 已落库，这里同步 news 与作者 user
+        // 三处冗余计数保持一致：news_like 已落库，这里同步 news 与作者 user
         // 增加/减少帖子点赞数
         newsMapper.updateLikeCount(postId, delta);
         // 增加/减少获赞总数，参数是这条帖子作者的id和 ±1
