@@ -34,7 +34,9 @@
 
 <!--    帖子收藏集合-->
     <select id="listCollectedPosts" resultType="com.guat.mynewsapp.dto.PostCardVO">
-        SELECT n.id, n.title, n.content, n.like_count, n.comment_count, n.collect_count, n.create_time,u.username,
+        SELECT n.id, n.title, n.content, n.user_id AS userId, u.username AS userName,
+               u.avatar, u.user_account AS userAccount,
+               n.like_count, n.comment_count, n.collect_count, n.create_time,
                (SELECT ni.image_url FROM news_image ni
                 WHERE ni.news_id = n.id
                 ORDER BY ni.sort_order ASC, ni.id ASC

@@ -223,6 +223,8 @@ public class NewsServiceImpl implements NewsService {
         User user = userMapper.getUserById(news.getUserId());
 
         news.setUserName(user.getUsername());
+        news.setAvatar(user.getAvatar());
+        news.setUserAccount(user.getUserAccount());
         news.setImages(images);
         return news;
     }
@@ -280,6 +282,8 @@ public class NewsServiceImpl implements NewsService {
 
             news.setImages(images); // 将图片列表设置到News对象中
             news.setUserName(user.getUsername());
+            news.setAvatar(user.getAvatar());
+            news.setUserAccount(user.getUserAccount());
         }
         // 3. 查询总记录数
         Long total = newsMapper.selectTotal(title);

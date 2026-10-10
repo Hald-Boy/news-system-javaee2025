@@ -111,16 +111,20 @@
 
     <!-- 某用户的帖子分页列表（我的作品，带首图） -->
     <select id="listByUserId" resultType="com.guat.mynewsapp.dto.PostCardVO">
-        SELECT n.id, n.title, n.content, n.like_count, n.comment_count, n.collect_count, n.create_time,
+        SELECT n.id, n.title, n.content, n.user_id AS userId, u.username AS userName,
+               u.avatar, u.user_account AS userAccount,
+               n.like_count, n.comment_count, n.collect_count, n.create_time,
                (SELECT ni.image_url FROM news_image ni
                 WHERE ni.news_id = n.id
                   AND (ni.is_delete IS NULL OR ni.is_delete = '0')
                 ORDER BY ni.sort_order ASC, ni.id ASC
                 LIMIT 1) AS cover
         FROM news n
+        JOIN user u ON u.id = n.user_id
         WHERE n.user_id = #{userId}
           AND (n.is_deleted IS NULL OR n.is_deleted = '0')
           AND (n.status IS NULL OR n.status = 0)
+          AND (u.is_deleted IS NULL OR u.is_deleted = 0)
         ORDER BY n.create_time DESC
         LIMIT #{offset}, #{limit}
     </select>
