@@ -81,4 +81,9 @@ public interface UserMapper {
     /** 更新个人资料（昵称/头像/背景/简介/生日/所在地），birthday 传 yyyy-MM-dd 或空 */
     int updateProfile(Integer userId, UserInfo  userInfo);
 
+    /**
+     * 直接设置用户总获赞数（覆盖式）
+     */
+    void setTotalLikeCount(Long userId, Integer count);
+
 }

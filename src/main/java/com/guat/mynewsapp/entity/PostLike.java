@@ -14,7 +14,7 @@ public class PostLike {
 
     private Long id;
     /** 帖子 id */
-    private Long postId;
+    private Long newsId;
     /** 点赞用户 id */
     private Long userId;
     /** 0 有效点赞 1 取消点赞 */

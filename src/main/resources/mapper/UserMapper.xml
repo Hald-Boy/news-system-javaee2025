@@ -120,4 +120,10 @@
         WHERE id = #{userId}
     </update>
 
+
+    <update id="setTotalLikeCount">
+        update user
+        set total_like_count = #{count}
+        where id = #{userId}
+    </update>
 </mapper>

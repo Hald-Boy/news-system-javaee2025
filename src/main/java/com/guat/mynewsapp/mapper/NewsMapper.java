@@ -40,6 +40,9 @@ public interface NewsMapper {
     /** 增减帖子点赞数，delta 可为 ±1 */
     int updateLikeCount(@Param("id") Integer id, @Param("delta") int delta);
 
+    /** 覆盖式设置帖子点赞总数（Redis 同步用，以 Redis 实际集合大小为准，不做累加） */
+    int setLikeCount(@Param("id") Integer id, @Param("likeCount") int likeCount);
+
     /** 增减帖子收藏数，delta 可为 ±1 */
     // 2026/9/7  P1新增
     int updateCollectCount(@Param("id") Integer id, @Param("delta") int delta);
@@ -57,4 +60,9 @@ public interface NewsMapper {
 
     /** 更新帖子状态：status 0 正常 1 下架(封禁) */
     int updateStatus(@Param("id") Integer id, @Param("status") Integer status);
+
+    /**
+     * 统计指定用户所有有效帖子的点赞数之和
+     */
+    Integer sumLikeCountByUserId(Long userId);
 }

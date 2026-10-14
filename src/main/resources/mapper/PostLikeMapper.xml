@@ -14,11 +14,24 @@
 <!--    插入新闻点赞记录-->
     <insert id="insert" parameterType="PostLike" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO news_like (news_id, user_id, is_cancel, create_time, update_time, is_deleted)
-        VALUES (#{postId}, #{userId}, #{isCancel}, NOW(), NOW(), 0)
+        VALUES (#{newsId}, #{userId}, #{isCancel}, NOW(), NOW(), 0)
     </insert>
 
 <!--    设置点赞记录是否有效-->
     <update id="updateCancel">
         UPDATE news_like SET is_cancel = #{isCancel}, update_time = NOW() WHERE id = #{id}
     </update>
+
+    <select id="selectByPostId" resultType="com.guat.mynewsapp.entity.PostLike">
+        select id, news_id, user_id, is_cancel
+        from news_like
+        where news_id = #{postId}
+    </select>
+
+    <select id="selectAllValidLikes" resultType="com.guat.mynewsapp.entity.PostLike">
+        select id, news_id, user_id, is_cancel
+        from news_like
+        where is_cancel = 0
+    </select>
+
 </mapper>

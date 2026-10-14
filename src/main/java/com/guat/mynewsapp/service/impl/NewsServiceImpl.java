@@ -11,6 +11,8 @@ import com.guat.mynewsapp.utils.FileUploadUtil;
 import com.guat.mynewsapp.utils.UserContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SetOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -45,6 +47,14 @@ public class NewsServiceImpl implements NewsService {
 
     @Autowired
     private NewsImageMapper imageMapper;
+
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+
+    // Redis Key 常量定义，统一管理
+    private static final String LIKE_SET_PREFIX = "post:like:";      // 点赞用户集合
+    private static final String LIKE_COUNT_PREFIX = "post:like:count:"; // 点赞计数
+    private static final String CHANGED_POST_KEY = "post:like:changed"; // 有变动的帖子集合
 
 
     /**
@@ -303,50 +313,92 @@ public class NewsServiceImpl implements NewsService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Map<String, Object> toggleLike(Integer userId, Integer postId) {
-        News post = newsMapper.findById(postId);
-        if (post == null) {
-            throw new BusinessException("帖子不存在");
-        }
+        String setKey = LIKE_SET_PREFIX + postId;
+        String countKey = LIKE_COUNT_PREFIX + postId;
+        Long uid = userId.longValue();
+
+        SetOperations<String,Object> setOps = redisTemplate.opsForSet();
+
+        // 1.判断当前用户是否已经点赞
+        // 第一行会返回 true/false/null，boolean不能为 null，如果第一行返回 null，就把 null设置为false
+        Boolean isLiked = setOps.isMember(setKey,uid);
+        boolean currentLiked = Boolean.TRUE.equals(isLiked);
+
         int delta;
-        // 传入用户id和帖子id查询是否已经存在点赞记录
-        PostLike record = postLikeMapper.findByUserAndPost(userId.longValue(), postId.longValue());
-        if (record == null) {
-            //如果还未点赞，则 ↓
-            PostLike pl = new PostLike();
-            pl.setUserId(userId.longValue());
-            pl.setPostId(postId.longValue());
-            pl.setIsCancel(0); // 0有效点赞 1无效点赞
-            // 插入点赞记录
-            postLikeMapper.insert(pl);
-            delta = 1;
-        } else if (Integer.valueOf(1).equals(record.getIsCancel())) {
-            // 之前点赞但已取消 -> 重新点赞
-            // 传入之前点赞的那条记录的id和设置为有效点赞
-            postLikeMapper.updateCancel(record.getId(), 0);
+
+        if (!currentLiked) {
+            // 未点赞，执行点赞
+            setOps.add(setKey,uid);
+            redisTemplate.opsForValue().increment(countKey,1);
             delta = 1;
         } else {
-            // 已点赞 -> 取消
-            postLikeMapper.updateCancel(record.getId(), 1);
+            // 已经点赞，取消
+            setOps.remove(setKey,uid);
+            redisTemplate.opsForValue().decrement(countKey,1);
             delta = -1;
         }
-        // 三处冗余计数保持一致：news_like 已落库，这里同步 news 与作者 user
-        // 增加/减少帖子点赞数
-        newsMapper.updateLikeCount(postId, delta);
-        // 增加/减少获赞总数，参数是这条帖子作者的id和 ±1
-        userMapper.updateTotalLikeCount(post.getUserId(), delta);
 
-        // 增加/减少帖子点赞之后获取当前帖子的点赞数
-        // int likeCount = (post.getLikeCount() == null ? 0 : post.getLikeCount()) + delta; 并发很高时可能用旧值计算，下面重新查询数据库较为稳妥
-        News newPost = newsMapper.findById(postId);
-        int likeCount = newPost.getLikeCount() == null ? 0 : newPost.getLikeCount();
+        // 2.标记该帖子点赞有变动，定时任务会同步
+        redisTemplate.opsForSet().add(CHANGED_POST_KEY, postId);
+
+//        // 传入用户id和帖子id查询是否已经存在点赞记录
+//        PostLike record = postLikeMapper.findByUserAndPost(userId.longValue(), postId.longValue());
+//        if (record == null) {
+//            //如果还未点赞，则 ↓
+//            PostLike pl = new PostLike();
+//            pl.setUserId(userId.longValue());
+//            pl.setPostId(postId.longValue());
+//            pl.setIsCancel(0); // 0有效点赞 1无效点赞
+//            // 插入点赞记录
+//            postLikeMapper.insert(pl);
+//            delta = 1;
+//        } else if (Integer.valueOf(1).equals(record.getIsCancel())) {
+//            // 之前点赞但已取消 -> 重新点赞
+//            // 传入之前点赞的那条记录的id和设置为有效点赞
+//            postLikeMapper.updateCancel(record.getId(), 0);
+//            delta = 1;
+//        } else {
+//            // 已点赞 -> 取消
+//            postLikeMapper.updateCancel(record.getId(), 1);
+//            delta = -1;
+//        }
+//        // 三处冗余计数保持一致：news_like 已落库，这里同步 news 与作者 user
+//        // 增加/减少帖子点赞数
+//        newsMapper.updateLikeCount(postId, delta);
+//        // 增加/减少获赞总数，参数是这条帖子作者的id和 ±1
+//        userMapper.updateTotalLikeCount(post.getUserId(), delta);
+//
+//        // 增加/减少帖子点赞之后获取当前帖子的点赞数
+//        // int likeCount = (post.getLikeCount() == null ? 0 : post.getLikeCount()) + delta; 并发很高时可能用旧值计算，下面重新查询数据库较为稳妥
+//        News newPost = newsMapper.findById(postId);
+
         // 封装结果
+        Long likeCount = setOps.size(setKey);
         Map<String, Object> result = new HashMap<>();
-        //防止极端情况点赞数变成负数。
-        //比如 bug 导致多次取消点赞，`likeCount=-1`，强制变成 0，前端不会出现 `-1` 点赞。
-        result.put("likeCount", Math.max(likeCount, 0));
-        //如果delta > 0 → true，如果delta < 0 → false
+        result.put("likeCount", Math.max(likeCount == null ? 0 : likeCount, 0));
         result.put("isLiked", delta > 0);
         return result;
+    }
+
+    /**
+     * 额外提供：单独查是否点赞（列表页批量用）
+     */
+    public boolean checkIsLiked(Integer userId, Integer postId) {
+        String setKey = LIKE_SET_PREFIX + postId;
+        Boolean member = redisTemplate.opsForSet().isMember(setKey, userId.longValue());
+        return Boolean.TRUE.equals(member);
+    }
+
+    /**
+     * 额外提供：单独查点赞数
+     */
+    public Long getLikeCount(Integer postId) {
+        String countKey = LIKE_COUNT_PREFIX + postId;
+        Object count = redisTemplate.opsForValue().get(countKey);
+        if (count == null) {
+            return 0L;
+        }
+        return Long.parseLong(count.toString());
     }
 
     /**
@@ -364,16 +416,31 @@ public class NewsServiceImpl implements NewsService {
         if (post == null) {
             throw new BusinessException("帖子不存在");
         }
+
+        // 点赞状态以 Redis 实时数据为准（点赞/取消都是实时写 Redis，DB 由定时任务延迟同步）
         boolean isLiked = false;
         if (userId != null) {
-            // 传入用户id和帖子id查询是否已经存在点赞记录
-            PostLike record = postLikeMapper.findByUserAndPost(userId.longValue(), postId.longValue());
-            // 如果查询到有点赞记录并且还是有效点赞（0），lsLiked就为true
-            isLiked = record != null && Integer.valueOf(0).equals(record.getIsCancel());
+            String key = LIKE_SET_PREFIX + postId;
+            // Redis 里有该帖子的点赞集合 → 直接判断当前用户是否在集合中
+            Boolean hasSet = redisTemplate.hasKey(key);
+            if (Boolean.TRUE.equals(hasSet)) {
+                Boolean member = redisTemplate.opsForSet().isMember(key, userId.longValue());
+                isLiked = Boolean.TRUE.equals(member);
+            } else {
+                // Redis 无该帖子的点赞集合（未预热/无人赞过），兜底查数据库
+                PostLike record = postLikeMapper.findByUserAndPost(userId.longValue(), postId.longValue());
+                isLiked = record != null && Integer.valueOf(0).equals(record.getIsCancel());
+            }
         }
+
+        // 点赞数优先读 Redis 实时计数；Redis 无计数键时回退数据库
+        Long likeCount = getLikeCount(postId);
+        if (likeCount == 0 && post.getLikeCount() != null) {
+            likeCount = post.getLikeCount().longValue();
+        }
+
         Map<String, Object> result = new HashMap<>();
-        //获取当前帖子的点赞数，和 true/false给前端是否渲染红心
-        result.put("likeCount", post.getLikeCount() == null ? 0 : post.getLikeCount());
+        result.put("likeCount", likeCount);
         result.put("isLiked", isLiked);
         return result;
     }
