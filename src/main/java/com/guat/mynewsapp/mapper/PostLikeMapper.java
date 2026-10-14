@@ -4,6 +4,8 @@ import com.guat.mynewsapp.entity.PostLike;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 @Mapper
 public interface PostLikeMapper {
 
@@ -15,4 +17,15 @@ public interface PostLikeMapper {
 
     //设置点赞记录是否有效
     int updateCancel(@Param("id") Long id, @Param("isCancel") Integer isCancel);
+
+    /**
+     * 根据帖子ID查询所有点赞记录
+     */
+    List<PostLike> selectByPostId(Long postId);
+
+    /**
+     * 查询所有有效点赞记录（用于预热）
+     */
+    List<PostLike> selectAllValidLikes();
+
 }

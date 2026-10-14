@@ -79,10 +79,17 @@
         SELECT * FROM news WHERE id = #{id}
     </select>
 
-    <!-- 增加帖子点赞数 -->
+    <!-- 增加帖子点赞数 纯SQL写法-->
     <update id="updateLikeCount">
         UPDATE news
         SET like_count = COALESCE(like_count, 0) + #{delta}, update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 覆盖式设置帖子点赞总数（Redis 同步用，以 Redis 实际集合大小为准，不做累加） -->
+    <update id="setLikeCount">
+        UPDATE news
+        SET like_count = #{likeCount}, update_time = NOW()
         WHERE id = #{id}
     </update>
 
@@ -133,4 +140,11 @@
     <update id="updateStatus">
         UPDATE news SET status = #{status}, update_time = NOW() WHERE id = #{id}
     </update>
+
+    <select id="sumLikeCountByUserId" resultType="java.lang.Integer">
+        select COALESCE(sum(like_count), 0)
+        from news
+        where user_id = #{userId}
+          and is_deleted = 0
+    </select>
 </mapper>
