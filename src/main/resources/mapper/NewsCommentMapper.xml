@@ -95,6 +95,41 @@
         WHERE id = #{id}
     </update>
 
+    <!--    覆盖式设置评论点赞数（Redis 同步用，以 Redis 实际集合大小为准）-->
+    <update id="setLikeCount">
+        UPDATE comment
+        SET like_count = #{likeCount}, update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!--    按 id 列表批量查评论详情（热评 ZSet 拿到 id 后回表查内容，顺序由 Java 层按 ZSet 分数重排）-->
+    <select id="listByIds" resultType="com.guat.mynewsapp.entity.Comment">
+        SELECT
+            c.id, c.news_id, c.user_id, c.parent_id, c.to_user_id,
+            c.content, c.status, c.create_time,
+            u.username, c.like_count,
+            (SELECT COUNT(1) FROM comment child WHERE child.root_comment_id = c.id AND child.status = 1) AS children
+        FROM comment c
+                 LEFT JOIN user u ON c.user_id = u.id
+        WHERE c.id IN
+        <foreach collection="ids" item="cid" open="(" separator="," close=")">
+            #{cid}
+        </foreach>
+          AND c.status = 1
+    </select>
+
+    <!--    预热用：查所有 status=1 的根评论，用来重建热评 ZSet（含子评论数 children）-->
+    <select id="listAllRootCommentsForWarmUp" resultType="com.guat.mynewsapp.entity.Comment">
+        SELECT c.id,
+               c.news_id AS newsId,
+               c.user_id AS userId,
+               c.create_time AS createTime,
+               c.like_count AS likeCount,
+               (SELECT COUNT(1) FROM comment child WHERE child.root_comment_id = c.id AND child.status = 1) AS children
+        FROM comment c
+        WHERE c.parent_id = 0 AND c.status = 1
+    </select>
+
 <!--    更新评论状态：status 0 删除(下架) 1 正常-->
     <update id="updateStatus">
         UPDATE comment SET status = #{status}, update_time = NOW() WHERE id = #{id}
