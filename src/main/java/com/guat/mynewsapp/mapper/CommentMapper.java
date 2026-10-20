@@ -38,6 +38,15 @@ public interface CommentMapper {
     /** 增减评论点赞数，delta 可为 ±1 */
     int updateLikeCount(@Param("id") Long id, @Param("delta") int delta);
 
+    /** 覆盖式设置评论点赞数（Redis 同步用，以 Redis 实际集合大小为准，不做累加） */
+    int setLikeCount(@Param("id") Long id, @Param("likeCount") int likeCount);
+
+    /** 按 id 列表批量查评论详情（热评 ZSet 拿到 id 后，再回表查内容） */
+    List<Comment> listByIds(@Param("ids") List<Long> ids, @Param("currentUserId") Integer currentUserId);
+
+    /** 预热用：查所有 status=1 的根评论（id/newsId/userId/createTime/likeCount） */
+    List<Comment> listAllRootCommentsForWarmUp();
+
     /** 更新评论状态：status 0 删除(下架) 1 正常 */
     int updateStatus(@Param("id") Long id, @Param("status") Integer status);
 }

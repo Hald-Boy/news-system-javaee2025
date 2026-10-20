@@ -34,4 +34,12 @@
         AND is_cancel = 0
         AND (is_deleted IS NULL OR is_deleted = 0)
     </select>
+
+    <!--    统计某条评论的有效"踩"数（热评分扣分用）-->
+    <select id="countValidByCommentId" resultType="int">
+        SELECT COUNT(1) FROM comment_dislike
+        WHERE comment_id = #{commentId}
+          AND is_cancel = 0
+          AND (is_deleted IS NULL OR is_deleted = 0)
+    </select>
 </mapper>

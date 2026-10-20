@@ -15,4 +15,7 @@ public interface CommentDislikeMapper {
 
     /** 查询当前用户已折叠(未取消)的评论 id 集合，用于评论列表初始化渲染 */
     List<Long> findFoldedCommentIds(@Param("userId") Long userId, @Param("commentIds") List<Long> commentIds);
+
+    /** 统计某条评论的有效"踩"数（热评分扣分用） */
+    int countValidByCommentId(@Param("commentId") Long commentId);
 }
